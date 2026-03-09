@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>墨库 v3 · AI小说知识库</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0e0c0a; --surface:#161310; --surface2:#1e1a15; --surface3:#26211a;
+  --border:#2e2820; --border2:#3d3428;
+  --gold:#c9973a; --gold2:#e8b84b; --gold-dim:rgba(201,151,58,0.15); --gold-glow:rgba(201,151,58,0.07);
+  --red:#c0392b; --red-dim:rgba(192,57,43,0.15);
+  --text:#e8dcc8; --text2:#9a8a72; --text3:#5a4e3e; --ink:#f2e8d8;
+  --green:#5d9e6a; --green-dim:rgba(93,158,106,0.15);
+  --blue:#4e7fa8; --blue-dim:rgba(78,127,168,0.15);
+  --purple:#8b5cf6; --purple-dim:rgba(139,92,246,0.15);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ── Header ── */
+.hdr{height:50px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.2rem;gap:0.8rem;flex-shrink:0;z-index:50}
+.logo{font-family:'Ma Shan Zheng',serif;font-size:1.3rem;color:var(--gold);letter-spacing:.1em}
+.logo-sep{width:1px;height:20px;background:var(--border2);margin:0 .3rem}
+.hdr-sub{font-size:.65rem;color:var(--text3);letter-spacing:.15em}
+.hdr-right{margin-left:auto;display:flex;gap:.4rem;align-items:center}
+
+/* ── Layout ── */
+.layout{display:grid;grid-template-columns:190px 1fr 350px;flex:1;overflow:hidden}
+
+/* ── Sidebar ── */
+.sb{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sb-inner{overflow-y:auto;flex:1;padding:.5rem 0}
+.sb-label{font-size:.6rem;letter-spacing:.2em;color:var(--text3);text-transform:uppercase;padding:.8rem 1rem .3rem}
+.nb{width:100%;padding:.6rem 1rem;background:none;border:none;text-align:left;cursor:pointer;display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--text2);border-left:2px solid transparent;transition:all .15s;font-family:'Noto Serif SC',serif}
+.nb:hover{background:var(--gold-glow);color:var(--text)}
+.nb.active{background:var(--gold-dim);color:var(--gold);border-left-color:var(--gold)}
+.nb .gt{font-size:.58rem;background:var(--surface3);color:var(--text3);padding:.1rem .35rem;border-radius:3px;margin-left:auto;flex-shrink:0}
+.nb.active .gt{background:rgba(201,151,58,.2);color:var(--gold)}
+.add-nb{margin:.4rem .7rem;padding:.45rem;background:none;border:1px dashed var(--border2);color:var(--text3);border-radius:4px;cursor:pointer;font-size:.73rem;width:calc(100% - 1.4rem);transition:all .2s;font-family:'Noto Sans SC',sans-serif}
+.add-nb:hover{border-color:var(--gold);color:var(--gold)}
+.sb-div{height:1px;background:var(--border);margin:.4rem 0}
+.gb{width:100%;padding:.5rem 1rem;background:none;border:none;text-align:left;cursor:pointer;display:flex;align-items:center;gap:.5rem;font-size:.77rem;color:var(--text3);transition:all .15s}
+.gb:hover{color:var(--text2);background:var(--gold-glow)}
+.gb.active{color:var(--gold2)}
+
+/* ── Main ── */
+.main{overflow-y:auto;background:var(--bg);display:flex;flex-direction:column}
+.mhdr{padding:1.2rem 1.8rem .8rem;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0}
+.ntitle{font-family:'Noto Serif SC',serif;font-size:1.4rem;font-weight:700;color:var(--ink)}
+.nmeta{display:flex;align-items:center;gap:.5rem;margin-top:.3rem}
+.mbadge{font-size:.67rem;padding:.12rem .5rem;border-radius:20px;border:1px solid var(--border2);color:var(--text3)}
+.nsynop{font-size:.8rem;color:var(--text2);line-height:1.7;margin-top:.5rem;max-width:580px;font-family:'Noto Serif SC',serif}
+.stats{display:flex;gap:1.2rem;padding:.5rem 1.8rem;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0}
+.stat{font-size:.7rem;color:var(--text3);display:flex;align-items:center;gap:.3rem}
+.sn{color:var(--gold);font-weight:600;font-size:.82rem}
+
+/* ── Tabs ── */
+.tabs{display:flex;padding:0 1.8rem;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{padding:.65rem 1rem;font-size:.78rem;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:.3rem}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab .cnt{font-size:.58rem;background:var(--surface3);padding:.1rem .3rem;border-radius:8px;color:var(--text3)}
+.tab.active .cnt{background:var(--gold-dim);color:var(--gold)}
+.tc{padding:1.2rem 1.8rem;flex:1}
+
+/* ── Cards ── */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.9rem}
+.ccard{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.1rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.ccard:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.crole{font-size:.6rem;letter-spacing:.1em;color:var(--text3);margin-bottom:.25rem;text-transform:uppercase}
+.cname{font-family:'Noto Serif SC',serif;font-size:1rem;font-weight:600;color:var(--ink);margin-bottom:.5rem}
+.cdesc{font-size:.73rem;color:var(--text2);line-height:1.65;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-family:'Noto Serif SC',serif}
+.ctags{display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.6rem}
+.ctag{font-size:.6rem;padding:.1rem .38rem;border-radius:20px;background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+.chov{position:absolute;top:.5rem;right:.5rem;display:none;gap:.25rem}
+.ccard:hover .chov{display:flex}
+.iBtn{width:24px;height:24px;border:1px solid var(--border2);border-radius:4px;background:var(--surface2);cursor:pointer;font-size:.62rem;display:flex;align-items:center;justify-content:center;transition:all .15s;color:var(--text2)}
+.iBtn:hover{border-color:var(--gold);color:var(--gold)}
+.iBtn.d:hover{border-color:var(--red);color:var(--red);background:var(--red-dim)}
+.addcard{background:none;border:2px dashed var(--border);border-radius:8px;min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;cursor:pointer;color:var(--text3);font-size:.78rem;transition:all .2s}
+.addcard:hover{border-color:var(--gold);color:var(--gold)}
+.addcard .plus{font-size:1.6rem;line-height:1}
+
+/* ── Text content ── */
+.twrap{max-width:700px}
+.ctbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem}
+.chint{font-size:.77rem;color:var(--text3)}
+.cblock{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.3rem;font-family:'Noto Serif SC',serif;font-size:.86rem;line-height:2.1;color:var(--text2);white-space:pre-wrap;min-height:180px}
+.cblock.empty{color:var(--text3);font-style:italic}
+
+/* ── Style cards ── */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.9rem}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:all .2s;position:relative}
+.scard:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.scard-hdr{padding:.7rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2)}
+.sname{font-size:.8rem;font-weight:500;color:var(--gold)}
+.scard-body{padding:.9rem;font-family:'Noto Serif SC',serif;font-size:.78rem;line-height:1.85;color:var(--text2);display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+/* analyzed badge */
+.analyzed-badge{font-size:.58rem;padding:.1rem .4rem;border-radius:3px;background:var(--green-dim);border:1px solid var(--green);color:var(--green)}
+
+/* ── Timeline ── */
+.tline{max-width:660px;position:relative}
+.tline-l{position:absolute;left:16px;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--gold),var(--border))}
+.titem{display:flex;gap:1.1rem;margin-bottom:1rem;position:relative}
+.tdot{width:32px;height:32px;border-radius:50%;background:var(--surface2);border:2px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.68rem;color:var(--text3);position:relative;z-index:1;cursor:pointer;transition:all .2s}
+.tdot:hover{border-color:var(--gold);color:var(--gold)}
+.tdot.done{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.tbody{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.9rem 1.1rem;flex:1}
+.tact{font-size:.62rem;color:var(--text3);letter-spacing:.08em;margin-bottom:.2rem;text-transform:uppercase}
+.ttitle{font-family:'Noto Serif SC',serif;font-size:.9rem;font-weight:600;color:var(--ink);margin-bottom:.35rem}
+.tdesc{font-size:.75rem;color:var(--text2);line-height:1.65;font-family:'Noto Serif SC',serif}
+.tacts{display:flex;gap:.3rem;margin-top:.5rem}
+
+/* ── Right panel ── */
+.rpanel{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.rp-hdr{padding:.9rem 1.1rem;border-bottom:1px solid var(--border);flex-shrink:0}
+.rp-title{font-size:.8rem;font-weight:500;color:var(--gold);letter-spacing:.05em}
+.rp-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.rptab{flex:1;padding:.55rem .5rem;text-align:center;font-size:.72rem;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.rptab:hover{color:var(--text2)}
+.rptab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.rp-body{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.rps{padding:.9rem 1.1rem;border-bottom:1px solid var(--border)}
+.rpl{font-size:.6rem;letter-spacing:.15em;color:var(--text3);text-transform:uppercase;margin-bottom:.6rem}
+.tarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.6rem .8rem;color:var(--text);font-size:.76rem;font-family:'Noto Serif SC',serif;resize:none;outline:none;line-height:1.7;transition:border-color .2s}
+.tarea:focus{border-color:var(--gold)}
+.tarea::placeholder{color:var(--text3)}
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:.35rem}
+.iopt{display:flex;align-items:center;gap:.35rem;padding:.4rem .55rem;border:1px solid var(--border);border-radius:5px;cursor:pointer;font-size:.72rem;color:var(--text2);background:var(--surface2);transition:all .12s;user-select:none}
+.iopt:hover{border-color:var(--border2);color:var(--text)}
+.iopt.on{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
+.iopt input{display:none}
+.gen-btn{margin:.7rem 1.1rem 0;padding:.65rem;background:linear-gradient(135deg,var(--gold),#a07830);color:#1a1000;border:none;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:700;letter-spacing:.05em;transition:all .2s;font-family:'Noto Sans SC',sans-serif}
+.gen-btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.out-area{flex:1;padding:.9rem 1.1rem;display:flex;flex-direction:column;gap:.6rem;min-height:0}
+.out-label{font-size:.6rem;color:var(--text3);letter-spacing:.12em;text-transform:uppercase;flex-shrink:0}
+.out-box{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.9rem;font-size:.71rem;color:#b8a88a;line-height:1.85;white-space:pre-wrap;overflow-y:auto;font-family:'Noto Serif SC',serif;min-height:100px}
+.out-box.mono{font-family:monospace;font-size:.67rem}
+.copy-btn{flex-shrink:0;padding:.55rem;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.75rem;transition:all .2s;font-family:'Noto Sans SC',sans-serif}
+.copy-btn:hover{border-color:var(--gold);color:var(--gold)}
+.copy-btn.ok{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.dl-btn{flex-shrink:0;padding:.55rem;background:var(--green-dim);color:var(--green);border:1px solid var(--green);border-radius:6px;cursor:pointer;font-size:.75rem;transition:all .2s;font-family:'Noto Sans SC',sans-serif}
+.dl-btn:hover{filter:brightness(1.1)}
+
+/* ── AI Analysis Panel ── */
+.ai-panel{display:flex;flex-direction:column;height:100%}
+.ai-top{padding:.9rem 1.1rem;border-bottom:1px solid var(--border);flex-shrink:0}
+.api-row{display:flex;gap:.4rem;align-items:center;margin-bottom:.6rem}
+.provider-sel{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:.45rem .6rem;color:var(--text);font-size:.76rem;font-family:'Noto Sans SC',sans-serif;outline:none;cursor:pointer}
+.provider-sel:focus{border-color:var(--gold)}
+.provider-sel option{background:var(--surface2)}
+.key-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:.45rem .6rem;color:var(--text);font-size:.74rem;font-family:monospace;outline:none;transition:border-color .2s}
+.key-input:focus{border-color:var(--gold)}
+.key-input::placeholder{color:var(--text3);font-family:'Noto Sans SC',sans-serif;font-size:.72rem}
+.save-key-btn{padding:.4rem .7rem;background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold);border-radius:5px;cursor:pointer;font-size:.7rem;white-space:nowrap;transition:all .15s}
+.save-key-btn:hover{background:rgba(201,151,58,.25)}
+.key-status{font-size:.65rem;padding:.15rem .5rem;border-radius:3px}
+.key-status.ok{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+.key-status.no{background:var(--red-dim);color:var(--red);border:1px solid var(--red)}
+.ai-fn-tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.5rem}
+.fn-tab{padding:.3rem .7rem;border:1px solid var(--border);border-radius:20px;font-size:.7rem;cursor:pointer;color:var(--text3);background:var(--surface2);transition:all .12s;white-space:nowrap}
+.fn-tab:hover{border-color:var(--border2);color:var(--text)}
+.fn-tab.active{border-color:var(--purple);color:var(--purple);background:var(--purple-dim)}
+.ai-workspace{flex:1;overflow-y:auto;padding:.9rem 1.1rem;display:flex;flex-direction:column;gap:.7rem}
+.ai-input-area{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.8rem}
+.ai-input-label{font-size:.65rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem}
+.ai-textarea{width:100%;background:transparent;border:none;color:var(--text);font-size:.78rem;font-family:'Noto Serif SC',serif;resize:none;outline:none;line-height:1.75;min-height:80px}
+.ai-textarea::placeholder{color:var(--text3)}
+.ai-run-btn{padding:.6rem 1.1rem;background:var(--purple-dim);border:1px solid var(--purple);color:var(--purple);border-radius:6px;cursor:pointer;font-size:.76rem;font-weight:600;transition:all .2s;font-family:'Noto Sans SC',sans-serif;display:flex;align-items:center;gap:.4rem}
+.ai-run-btn:hover:not(:disabled){background:rgba(139,92,246,.25)}
+.ai-run-btn:disabled{opacity:.5;cursor:not-allowed}
+.ai-result{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.9rem;font-size:.76rem;color:var(--text2);line-height:1.85;font-family:'Noto Serif SC',serif;white-space:pre-wrap;min-height:80px;flex:1}
+.ai-result .thinking{color:var(--text3);font-style:italic}
+.save-to-lib-btn{padding:.5rem;background:var(--green-dim);border:1px solid var(--green);color:var(--green);border-radius:6px;cursor:pointer;font-size:.73rem;transition:all .2s;font-family:'Noto Sans SC',sans-serif}
+.save-to-lib-btn:hover{filter:brightness(1.1)}
+
+/* loading spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(139,92,246,.3);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite}
+
+/* ── Modal ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:200}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:10px;width:560px;max-width:95vw;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:mIn .2s ease}
+@keyframes mIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mhdr{padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.mtitle{font-family:'Noto Serif SC',serif;font-size:.95rem;font-weight:600;color:var(--ink)}
+.mclose{width:26px;height:26px;background:var(--surface2);border:1px solid var(--border);border-radius:50%;cursor:pointer;color:var(--text3);font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.mclose:hover{color:var(--text);border-color:var(--border2)}
+.mbody{padding:1.3rem;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:.9rem}
+.mfooter{padding:.9rem 1.4rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:.5rem;flex-shrink:0}
+.field{display:flex;flex-direction:column;gap:.35rem}
+.field label{font-size:.73rem;color:var(--text3);font-weight:500}
+.field input,.field textarea,.field select{padding:.5rem .75rem;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:.82rem;font-family:'Noto Sans SC',sans-serif;outline:none;transition:border-color .15s}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--gold)}
+.field textarea{resize:vertical;min-height:75px;line-height:1.7;font-family:'Noto Serif SC',serif}
+.field select{cursor:pointer}
+.field select option{background:var(--surface2)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.tchip{padding:.18rem .5rem;border-radius:20px;border:1px solid var(--border);font-size:.7rem;cursor:pointer;color:var(--text3);background:var(--surface2);transition:all .12s;user-select:none}
+.tchip:hover{border-color:var(--border2);color:var(--text2)}
+.tchip.on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.tchips{display:flex;flex-wrap:wrap;gap:.35rem}
+
+/* Mode btns */
+.mbtn{padding:.65rem .5rem;border:1px solid var(--border);border-radius:6px;cursor:pointer;text-align:center;background:var(--surface2);transition:all .15s;user-select:none}
+.mbtn:hover{border-color:var(--border2)}
+.mbtn.active{border-color:var(--gold);background:var(--gold-dim)}
+.mbtn.active .mbt-title{color:var(--gold)}
+.mbt-title{font-size:.73rem;font-weight:600;margin:.2rem 0}
+.mbt-sub{font-size:.6rem;color:var(--text3)}
+
+/* Btn */
+.btn{padding:.38rem .85rem;border-radius:5px;cursor:pointer;font-size:.76rem;border:1px solid transparent;font-family:'Noto Sans SC',sans-serif;transition:all .15s}
+.btn-g{background:none;border-color:var(--border2);color:var(--text3)}
+.btn-g:hover{border-color:var(--gold);color:var(--gold)}
+.btn-p{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.btn-p:hover{background:rgba(201,151,58,.25)}
+.btn-d{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+
+/* empty */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:260px;gap:.7rem;color:var(--text3)}
+.ei{font-size:2.5rem;opacity:.5}
+
+/* ── v4 additions ── */
+/* Arc timeline inside char cards */
+.arc-mini{margin-top:.55rem;padding-top:.55rem;border-top:1px solid var(--border)}
+.arc-mini-node{display:flex;gap:.5rem;align-items:flex-start;margin-bottom:.3rem}
+.arc-mini-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:.35rem}
+.arc-mini-txt{font-size:.68rem;color:var(--text2);line-height:1.55;font-family:'Noto Serif SC',serif}
+.arc-mini-lbl{font-size:.6rem;color:var(--text3);margin-bottom:.1rem}
+/* Relation card */
+.rel-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.9rem 1rem;transition:all .18s}
+.rel-card:hover{border-color:var(--border2)}
+.rel-pair{display:flex;align-items:center;gap:.5rem;margin-bottom:.45rem}
+.rel-name{font-family:'Noto Serif SC',serif;font-size:.85rem;color:var(--ink);font-weight:500}
+.tension-bar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.tension-fill{height:100%;border-radius:2px;transition:width .3s,background .3s}
+.rel-desc{font-size:.75rem;color:var(--text2);line-height:1.65;font-family:'Noto Serif SC',serif;margin-top:.4rem}
+/* Journal */
+.jentry{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;display:flex;gap:.8rem;transition:all .18s}
+.jentry:hover{border-color:var(--border2)}
+.jchap{flex-shrink:0;text-align:right;min-width:44px}
+.jchap strong{display:block;font-size:.8rem;color:var(--gold);font-family:'Noto Serif SC',serif}
+.jchap-meta{font-size:.6rem;color:var(--text3)}
+.jdiv{width:1px;background:var(--border);flex-shrink:0;align-self:stretch}
+.jsummary{font-size:.77rem;color:var(--text2);line-height:1.75;font-family:'Noto Serif SC',serif}
+/* Token bar */
+.token-bar{display:flex;align-items:center;gap:.5rem;padding:.3rem .7rem;background:var(--surface2);border:1px solid var(--border);border-radius:5px;font-size:.63rem;color:var(--text3);margin:.4rem 1.1rem 0;flex-shrink:0}
+.tbar-wrap{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.tbar-fill{height:100%;border-radius:2px;transition:width .3s,background .3s}
+/* Tag filter bar */
+.tag-filter-bar{display:flex;flex-wrap:wrap;gap:.2rem;padding:.5rem 1.1rem;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0}
+/* Prompt version list */
+.pv-item{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:.55rem .8rem;cursor:pointer;transition:all .12s;display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+.pv-item:hover{border-color:var(--border2)}.pv-item.active{border-color:var(--gold);background:var(--gold-dim)}
+.pv-name{font-size:.78rem;font-weight:500;color:var(--text);flex:1}
+.pv-meta{font-size:.6rem;color:var(--text3)}
+/* World layer toggle */
+.layer-toggle{display:flex;gap:.3rem;margin-bottom:.6rem}
+.ltab{padding:.22rem .55rem;border:1px solid var(--border);border-radius:4px;font-size:.68rem;cursor:pointer;color:var(--text3);background:var(--surface2);transition:all .1s}
+.ltab:hover{border-color:var(--border2);color:var(--text2)}.ltab.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
+/* Condensed prompt badge */
+.condensed-badge{font-size:.6rem;padding:.08rem .35rem;border-radius:3px;background:var(--green-dim);border:1px solid var(--green);color:var(--green)}
+.condensed-strip{padding:.45rem .9rem;background:rgba(93,158,106,.07);border-top:1px solid var(--border);font-size:.68rem;color:var(--green);line-height:1.6;font-family:'Noto Serif SC',serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* v4 rp tab - extra tab */
+#rpt-pv{font-size:.67rem}
+/* Toast */
+.toast{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(60px);background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:.5rem 1.1rem;border-radius:30px;font-size:.77rem;transition:transform .3s ease;z-index:999;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="hdr">
+  <div class="logo">墨库</div>
+  <div class="logo-sep"></div>
+  <span class="hdr-sub">AI 小说知识库  v4</span>
+  <!-- Chapter position selector -->
+  <div id="chapter-pill" style="display:none;align-items:center;gap:.4rem;padding:.22rem .7rem;background:var(--surface2);border:1px solid var(--border2);border-radius:20px;font-size:.7rem;color:var(--text2)">
+    <span style="color:var(--text3)">当前章节</span>
+    <select id="global-chapter-sel" onchange="onChapterChange()" style="background:none;border:none;color:var(--gold);font-size:.7rem;cursor:pointer;outline:none;font-family:'Noto Sans SC',sans-serif;max-width:110px">
+      <option value="0">初始状态</option>
+    </select>
+  </div>
+  <div class="hdr-right">
+    <button class="btn btn-g" onclick="exportDB()">⬇ 导出</button>
+    <button class="btn btn-g" onclick="document.getElementById('imp').click()">⬆ 导入</button>
+    <input type="file" id="imp" accept=".json" style="display:none" onchange="importDB(event)">
+  </div>
+</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sb">
+    <div style="padding:.7rem .7rem .3rem">
+      <button class="add-nb" onclick="openNewNovel()">＋ 新建小说</button>
+    </div>
+    <div class="sb-inner">
+      <div class="sb-label">我的小说</div>
+      <div id="novel-list"></div>
+      <div class="sb-div"></div>
+      <div class="sb-label">全局资源</div>
+      <button class="gb" id="gb-style" onclick="showGlobalStyles()"><span>🎨</span> 全局文风库</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main" id="main">
+    <div class="empty" style="height:100%">
+      <div class="ei">📖</div>
+      <div style="font-size:.85rem">从左侧选择或新建一部小说</div>
+      <button class="btn btn-p" onclick="openNewNovel()">＋ 新建第一部小说</button>
+    </div>
+  </main>
+
+  <!-- Right Panel -->
+  <aside class="rpanel">
+    <div class="rp-hdr">
+      <div class="rp-title">⚡ 工具面板</div>
+    </div>
+    <div class="rp-tabs">
+      <div class="rptab active" id="rpt-prompt" onclick="switchRpTab('prompt')">📝 提示词</div>
+      <div class="rptab" id="rpt-lorebook" onclick="switchRpTab('lorebook')">📚 世界书</div>
+      <div class="rptab" id="rpt-ai" onclick="switchRpTab('ai')">🤖 AI分析</div>
+      <div class="rptab" id="rpt-pv" onclick="switchRpTab('pv')">🗂 版本</div>
+    </div>
+    <div class="rp-body">
+
+      <!-- ── Prompt Tab ── -->
+      <div id="tab-prompt" style="display:flex;flex-direction:column;height:100%">
+        <div class="rps">
+          <div class="rpl">写作任务</div>
+          <textarea class="tarea" id="task" rows="3" placeholder="描述这次的写作任务…&#10;例：写第五章，叶辰和苏雪在咖啡厅的初次见面"></textarea>
+        </div>
+        <div class="rps">
+          <div class="rpl">注入内容</div>
+          <div class="igrid" id="inject-opts">
+            <label class="iopt on" data-key="world"><input type="checkbox" checked><span>🌍</span> 世界观</label>
+            <label class="iopt on" data-key="chars"><input type="checkbox" checked><span>👤</span> 人物</label>
+            <label class="iopt on" data-key="plot"><input type="checkbox" checked><span>📋</span> 大纲</label>
+            <label class="iopt on" data-key="style"><input type="checkbox" checked><span>✍️</span> 文风</label>
+            <label class="iopt on" data-key="rules"><input type="checkbox" checked><span>📐</span> 规则</label>
+            <label class="iopt" data-key="gstyle"><input type="checkbox"><span>🎨</span> 全局文风</label>
+          </div>
+        </div>
+        <button class="gen-btn" onclick="generatePrompt()">⚡ 生成提示词</button>
+        <div id="token-bar" style="display:none" class="token-bar">
+          <span>预估token</span>
+          <div class="tbar-wrap"><div class="tbar-fill" id="tbar-fill" style="width:0%;background:var(--green)"></div></div>
+          <span id="token-count" style="color:var(--text2)">0</span>
+          <button onclick="saveCurrentPrompt()" style="margin-left:.3rem;padding:.1rem .4rem;background:none;border:1px solid var(--border2);color:var(--text3);border-radius:4px;cursor:pointer;font-size:.6rem;font-family:'Noto Sans SC',sans-serif" title="保存当前版本">💾</button>
+        </div>
+        <div class="out-area">
+          <div class="out-label">结果（复制后粘贴给任意AI）</div>
+          <div class="out-box" id="prompt-out">选择小说后点击生成。</div>
+          <button class="copy-btn" id="copy-p-btn" onclick="copyText('prompt-out','copy-p-btn')">📋 复制</button>
+        </div>
+      </div>
+
+      <!-- ── Lorebook Tab ── -->
+      <div id="tab-lorebook" style="display:none;flex-direction:column;height:100%">
+        <div class="rps" style="font-size:.71rem;color:var(--text3);line-height:1.7;background:var(--surface2);margin:.9rem 1.1rem;border-radius:6px;padding:.7rem;border:1px solid var(--border)">
+          导出标准 JSON，可直接导入 <span style="color:var(--gold2)">SillyTavern / RikkaHub / Tavern</span>。每个条目独立，平台按关键词自动注入。
+        </div>
+        <div class="rps">
+          <div class="rpl">包含条目</div>
+          <div class="igrid">
+            <label class="iopt on" data-lbkey="chars"><input type="checkbox" checked><span>👤</span> 人物（各一条）</label>
+            <label class="iopt on" data-lbkey="world"><input type="checkbox" checked><span>🌍</span> 世界观</label>
+            <label class="iopt on" data-lbkey="plot"><input type="checkbox" checked><span>📋</span> 剧情大纲</label>
+            <label class="iopt" data-lbkey="style"><input type="checkbox"><span>✍️</span> 文风样本</label>
+            <label class="iopt on" data-lbkey="rules"><input type="checkbox" checked><span>📐</span> 写作规则</label>
+          </div>
+        </div>
+        <div class="rps">
+          <div class="rpl">常驻注入（无需关键词触发）</div>
+          <div class="igrid">
+            <label class="iopt" data-lbconst="world"><input type="checkbox"><span>🌍</span> 世界观常驻</label>
+            <label class="iopt on" data-lbconst="rules"><input type="checkbox" checked><span>📐</span> 规则常驻</label>
+          </div>
+        </div>
+        <button class="gen-btn" onclick="generateLorebook()">📚 生成世界书</button>
+        <div class="out-area">
+          <div class="out-label">JSON 预览（共 <span id="lb-count">0</span> 条）</div>
+          <div class="out-box mono" id="lb-out">点击生成后可预览和下载。</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;flex-shrink:0">
+            <button class="copy-btn" onclick="copyText('lb-out','')">📋 复制 JSON</button>
+            <button class="dl-btn" onclick="downloadLorebook()">⬇ 下载 .json</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── AI Analysis Tab ── -->
+      <div id="tab-ai" style="display:none;flex-direction:column;height:100%">
+        <!-- API Config -->
+        <div class="ai-top">
+          <div class="rpl" style="margin-bottom:.5rem">AI 接口配置</div>
+          <div class="api-row">
+            <select class="provider-sel" id="ai-provider" onchange="onProviderChange()">
+              <option value="claude">Claude (Anthropic)</option>
+              <option value="openai">OpenAI / ChatGPT</option>
+              <option value="deepseek">DeepSeek</option>
+              <option value="gemini">Gemini (Google)</option>
+              <option value="newapi">🔀 中转站 (new-api等)</option>
+            </select>
+            <span class="key-status" id="key-status-badge">未配置</span>
+          </div>
+          <!-- Model selector row (rendered dynamically) -->
+          <div id="model-row" style="margin-bottom:.4rem">
+            <select class="provider-sel" id="model-select" style="width:100%" onchange="onModelChange()">
+              <option>claude-sonnet-4-20250514</option><option>claude-opus-4-5</option><option>claude-haiku-4-5-20251001</option>
+            </select>
+          </div>
+          <div class="api-row">
+            <input class="key-input" type="password" id="api-key-input" placeholder="粘贴 Claude API Key (sk-ant-…)" oninput="onKeyInput()">
+            <button class="save-key-btn" onclick="saveApiKey()">保存</button>
+          </div>
+          <div style="font-size:.63rem;color:var(--text3);margin-top:.25rem" id="api-hint">Key 从 console.anthropic.com 获取</div>
+
+          <!-- AI Function tabs -->
+          <div style="margin-top:.7rem">
+            <div class="rpl" style="margin-bottom:.4rem">分析功能</div>
+            <div class="ai-fn-tabs">
+              <div class="fn-tab active" id="fn-analyze" onclick="setFn('analyze')">🔍 提炼文风</div>
+              <div class="fn-tab" id="fn-continue" onclick="setFn('continue')">✍️ 按风格续写</div>
+              <div class="fn-tab" id="fn-compare" onclick="setFn('compare')">⚖️ 风格对比</div>
+              <div class="fn-tab" id="fn-journal" onclick="setFn('journal')">📓 生成章节摘要</div>
+              <div class="fn-tab" id="fn-custom" onclick="setFn('custom')">💬 自由问答</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workspace -->
+        <div class="ai-workspace" id="ai-workspace">
+          <!-- injected by setFn() -->
+        </div>
+      </div>
+
+      <!-- ── PROMPT VERSION TAB ── -->
+      <div id="tab-pv" style="display:none;flex-direction:column;height:100%">
+        <div class="rps">
+          <div class="rpl">已保存的提示词版本</div>
+          <div id="pv-list">
+            <div style="font-size:.72rem;color:var(--text3);text-align:center;padding:.8rem">选择小说后显示版本</div>
+          </div>
+          <button class="gen-btn" style="margin-top:.5rem" onclick="saveCurrentPrompt()">＋ 保存当前提示词为新版本</button>
+        </div>
+        <div class="out-area">
+          <div class="out-lbl">选中版本内容</div>
+          <div class="out-box" id="pv-content" style="font-size:.7rem">点击上方版本查看。</div>
+          <div style="display:flex;gap:.35rem;flex-shrink:0">
+            <button class="cpbtn" style="flex:1" onclick="copyText('pv-content','')">📋 复制</button>
+            <button class="cpbtn" style="flex:1;border-color:var(--red);color:var(--red)" onclick="deleteSelectedPv()">🗑 删除</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="mhdr">
+      <span class="mtitle" id="modal-title">—</span>
+      <button class="mclose" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mbody" id="modal-body"></div>
+    <div class="mfooter">
+      <button class="btn btn-g" onclick="closeModal()">取消</button>
+      <button class="btn btn-p" onclick="commitModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════════════
+const TRAITS = ['勇敢','懦弱','冷静','冲动','聪慧','腹黑','温柔','强硬','忠诚','背叛','幽默','严肃','纯善','痴情','多疑','开朗','孤傲','毒舌','善良','偏执'];
+const GENRES = ['历史言情','现代都市','玄幻修仙','悬疑推理','科幻未来','轻小说','古言仙侠','末世废土','其他'];
+
+const PROVIDER_CONFIG = {
+  claude:   { name:'Claude',    url:'https://api.anthropic.com/v1/messages',       models:['claude-sonnet-4-20250514','claude-opus-4-5','claude-haiku-4-5-20251001'], keyHint:'sk-ant-…' },
+  openai:   { name:'OpenAI',    url:'https://api.openai.com/v1/chat/completions',   models:['gpt-4o','gpt-4o-mini','gpt-4-turbo','o3-mini'],                          keyHint:'sk-…' },
+  deepseek: { name:'DeepSeek',  url:'https://api.deepseek.com/v1/chat/completions', models:['deepseek-chat','deepseek-reasoner'],                                     keyHint:'sk-…' },
+  gemini:   { name:'Gemini',    url:'',                                              models:['gemini-2.0-flash','gemini-1.5-pro','gemini-1.5-flash'],                  keyHint:'AIza…' },
+  newapi:   { name:'中转站',    url:'',  /* 用户自填 */                              models:['gpt-4o','claude-sonnet-4-20250514','deepseek-chat','gemini-2.0-flash','自定义…'], keyHint:'sk-…' },
+};
+
+// ═══════════════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════════════
+// ── v4 migration: upgrade old v3 data on load ──
+function migrateDB(raw) {
+  (raw.novels||[]).forEach(n => {
+    n.currentChapter = n.currentChapter||0;
+    n.worldSummary = n.worldSummary||n.world||'';
+    n.worldArc = n.worldArc||[];
+    n.novelTags = n.novelTags||['主线','支线','感情线','背景'];
+    n.relations = n.relations||[];
+    n.journal = n.journal||[];
+    n.promptVersions = n.promptVersions||[];
+    (n.characters||[]).forEach(c => {
+      c.summary = c.summary||c.personality||'';
+      c.tags = c.tags||[];
+      c.arc = c.arc||[];
+    });
+    (n.styles||[]).forEach(s => { s.tags=s.tags||[]; s.summary=s.summary||s.name; });
+    (n.plot||[]).forEach(p => { p.tags=p.tags||[]; });
+  });
+  (raw.globalStyles||[]).forEach(s => { s.tags=s.tags||[]; s.summary=s.summary||s.name; });
+  return raw;
+}
+
+let DB = (() => {
+  const saved = localStorage.getItem('mokku_v4') || localStorage.getItem('mokku_v3');
+  if (saved) { try { return migrateDB(JSON.parse(saved)); } catch(e){} }
+  return migrateDB({
+    novels:[{
+      id:'n1', title:'长安梦华录', genre:'历史言情',
+      synopsis:'大唐开元年间，落魄世家女谢云舒与寒门状元林珩于长安城中，一段跨越门第的情缘悄然展开。',
+      currentChapter:2,
+      worldSummary:'唐开元盛世，长安百万人口。皇权/世家/寒门三方角力，科举兴，坊市宵禁。',
+      world:'【时代背景】唐朝开元盛世（公元713-741年），长安城人口逾百万。\n\n【社会结构】皇权、世家、寒门三方角力。科举制度为寒门开辟通道。\n\n【地理设定】故事发生在长安城坊区，涉及平康坊、崇仁坊、宣阳坊。\n\n【文化背景】诗文唱和盛行，坊市制度严格，宵禁制度存在。',
+      worldArc:[{chapter:3,label:'第三章·战事始',changes:'朝廷开始清查世家，坊市宵禁提前，谢云舒的摊位被迫迁移至城郊。'}],
+      rules:'1. 使用接近文言的古典口语，避免完全现代词汇\n2. 称谓规范：郎君/娘子/陛下\n3. 第三人称有限视角（跟随谢云舒）\n4. 禁用：总裁、霸道、老婆等现代词',
+      novelTags:['主线','感情线','背景','转折','支线'],
+      characters:[
+        {id:'c1',name:'谢云舒',role:'女主',age:'18',
+         tags:['主线','感情线'],
+         summary:'落魄世家女，冷淡外表下内心细腻，靠卖字画为生，对林珩有淡淡好感但刻意压制。',
+         appearance:'眉目如画，惯着淡色襦裙，气质清冷如秋水。',
+         personality:'表面疏离冷淡，内心敏感细腻。历经家道中落，不轻易依赖他人。',
+         background:'出身琅琊谢氏旁支，家道中落，靠卖字画维生。',
+         relations:'幼时与林珩有一面之缘，对其有淡淡好感但刻意压制。',
+         traits:['冷淡','聪慧','倔强'],
+         arc:[{chapter:2,label:'第二章·被诬陷后',changes:'防线有所松动，开始正视对林珩的信任感，性格由完全拒绝外界转为小幅接纳。'}]},
+        {id:'c2',name:'林珩',role:'男主',age:'23',
+         tags:['主线','感情线'],
+         summary:'寒门三元及第，翰林院编修，沉稳正直，对谢云舒情根深种。',
+         appearance:'身形颀长，眉眼深邃，笑时有两道浅浅弧度。',
+         personality:'外表沉稳内敛，极重情义，对谢云舒情根深种。',
+         background:'寒门出身，三元及第，现任翰林院编修。',
+         relations:'幼时见过谢云舒，入京后偶然重逢，暗生情愫。',
+         traits:['沉稳','正直','痴情'],
+         arc:[{chapter:3,label:'第三章·拒婚压力',changes:'承受家族和上司双重施压，开始短暂动摇，但对谢云舒的心意更加确定。'}]}
+      ],
+      relations:[{
+        id:'r1',charA:'谢云舒',charB:'林珩',tags:['主线','感情线'],tension:6,
+        states:[
+          {chapter:0,desc:'幼时一面之缘，谢云舒有淡淡印象，林珩念念不忘。'},
+          {chapter:1,desc:'长安重逢，表面客气，林珩主动示好，谢云舒刻意冷淡。'},
+          {chapter:2,desc:'共经被诬，谢云舒开始信任林珩，距离拉近，暗流涌动。'}
+        ]
+      }],
+      plot:[
+        {id:'p1',act:'第一幕',title:'长安重逢',desc:'谢云舒在东市偶遇林珩，两人认出彼此。',done:true,tags:['主线']},
+        {id:'p2',act:'第二幕',title:'共渡难关',desc:'谢云舒被诬陷，林珩仗义出手，两人被迫合作，关系渐近。',done:true,tags:['主线','转折']},
+        {id:'p3',act:'第三幕',title:'误会与分离',desc:'林珩成婚消息传出，谢云舒误解独自离京。',done:false,tags:['主线','转折']},
+        {id:'p4',act:'第四幕',title:'真相大白',desc:'林珩拒婚辞官，找到谢云舒，冰释前嫌。',done:false,tags:['主线']}
+      ],
+      journal:[
+        {id:'j1',chapter:1,title:'第一章',tags:['主线'],summary:'谢云舒在东市与林珩意外重逢。林珩主动上前，谢云舒以冷淡回应，内心却有一丝动摇，两人约定次日再见。'},
+        {id:'j2',chapter:2,title:'第二章',tags:['主线','转折'],summary:'谢云舒被富商诬陷偷窃，林珩当众为其作证洗脱。事后两人第一次单独交谈，谢云舒对他的防备有所松动。'}
+      ],
+      styles:[
+        {id:'s1',name:'细腻心理描写',tags:['感情线'],summary:'动作细节暗示心理，克制留白。',
+         content:'她转过身去，手指微微收紧，指甲掐进掌心的疼痛让她清醒了几分。不是不欢喜，是不敢。欢喜这种东西，一旦生了根，拔起来便要带走一块血肉。',analyzed:null,condensed:null}
+      ],
+      promptVersions:[]
+    }],
+    globalStyles:[
+      {id:'gs1',name:'张爱玲式细腻',tags:['情感'],summary:'秋水旧梦意象，情感沉入。',content:'她的眼睛里有一种说不清的东西，像是秋水，像是旧梦，你凝视它，它便缓缓沉入你心底，在那里泛起一圈一圈的涟漪，久久不散。',analyzed:null,condensed:null},
+      {id:'gs2',name:'古典意象留白',tags:['意象'],summary:'月色梨花，时间与等待。',content:'月色如霜，铺满长廊。她站在廊檐下，看那一树梨花开了又谢，谢了又开，不知几度春秋，她却始终是那个她。',analyzed:null,condensed:null}
+    ]
+  });
+})();
+
+let curNovelId = null;
+let curTab = 'chars';
+let curRpTab = 'prompt';
+let curAiFn = 'analyze';
+let modalMode = null;
+let modalPayload = null;
+let lorebookCache = null;
+let lastAiResult = '';
+let lastDetailedAnalysis = '';
+let lastCondensedPrompt = '';
+let activeTagFilter = new Set();
+let selectedPvId = null;
+
+function persist() { localStorage.setItem('mokku_v4', JSON.stringify(DB)); }
+function curNovel() { return DB.novels.find(n => n.id === curNovelId) || null; }
+function curChapter() { return curNovel()?.currentChapter || 0; }
+
+// ─── ARC HELPERS ───
+function arcAtChapter(arc, chapter) {
+  return (arc||[]).filter(n=>n.chapter<=chapter).sort((a,b)=>a.chapter-b.chapter);
+}
+function charSnapshot(c, chapter) {
+  const nodes = arcAtChapter(c.arc||[], chapter);
+  return {...c, arcNotes:nodes.map(n=>`[第${n.chapter}章·${n.label}] ${n.changes}`).join('\n'), hasEvolved:nodes.length>0};
+}
+function worldSnapshot(n, chapter) {
+  const nodes = arcAtChapter(n.worldArc||[], chapter);
+  return {summary:n.worldSummary||'', detail:n.world||'', arcNotes:nodes.map(e=>`[第${e.chapter}章后] ${e.changes}`).join('\n'), hasEvolved:nodes.length>0};
+}
+function relAtChapter(rel, chapter) {
+  const s=(rel.states||[]).filter(x=>x.chapter<=chapter).sort((a,b)=>a.chapter-b.chapter);
+  return s.length ? s[s.length-1] : null;
+}
+
+// ─── TAG HELPERS ───
+const TAG_PALETTE = ['#4a78a0','#559660','#c8953a','#b83228','#7c50e0','#c06820','#5a7a6a','#8b6914'];
+function tagColor(tag, allTags) {
+  const i = (allTags||[]).indexOf(tag) % TAG_PALETTE.length;
+  return TAG_PALETTE[Math.max(0,i)];
+}
+function tagBadge(tag, allTags, onclick) {
+  const col = tagColor(tag, allTags||[]);
+  const active = activeTagFilter.has(tag);
+  return `<span onclick="${onclick||''}" data-tagbadge="${tag}" style="display:inline-flex;align-items:center;padding:.1rem .42rem;border-radius:20px;font-size:.6rem;background:${active?col+'33':col+'18'};border:1px solid ${col};color:${col};cursor:pointer;margin:.1rem;font-weight:${active?'600':'400'}">${tag}</span>`;
+}
+function tagMatch(itemTags) {
+  if (activeTagFilter.size===0) return true;
+  return (itemTags||[]).some(t=>activeTagFilter.has(t));
+}
+
+// ═══════════════════════════════════════════════════════
+//  API KEY MANAGEMENT
+// ═══════════════════════════════════════════════════════
+function getProvider() { return document.getElementById('ai-provider').value; }
+function getModel() {
+  const sel = document.getElementById('model-select');
+  const custom = document.getElementById('model-custom');
+  if (!sel) return '';
+  const v = sel.value;
+  if (v === '自定义…' && custom) return custom.value.trim();
+  return v;
+}
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  const p = getProvider();
+  if (!key) return toast('请先输入 API Key');
+  localStorage.setItem('mokku_key_' + p, key);
+  // also save newapi base url if applicable
+  if (p === 'newapi') {
+    const u = document.getElementById('newapi-url')?.value?.trim();
+    if (u) localStorage.setItem('mokku_url_newapi', u);
+  }
+  updateKeyStatus();
+  toast('✅ Key 已保存');
+}
+
+function loadApiKey() {
+  const p = getProvider();
+  const key = localStorage.getItem('mokku_key_' + p) || '';
+  document.getElementById('api-key-input').value = key ? '•'.repeat(Math.min(key.length, 24)) : '';
+  if (p === 'newapi') {
+    const u = document.getElementById('newapi-url');
+    if (u) u.value = localStorage.getItem('mokku_url_newapi') || '';
+  }
+  updateKeyStatus();
+}
+
+function getRawKey(provider) {
+  return localStorage.getItem('mokku_key_' + (provider || getProvider())) || '';
+}
+
+function updateKeyStatus() {
+  const key = getRawKey();
+  const el = document.getElementById('key-status-badge');
+  if (key) { el.textContent = '已配置'; el.className = 'key-status ok'; }
+  else { el.textContent = '未配置'; el.className = 'key-status no'; }
+}
+
+function onProviderChange() {
+  const p = getProvider();
+  const cfg = PROVIDER_CONFIG[p];
+  document.getElementById('api-key-input').placeholder = `${cfg.name} API Key (${cfg.keyHint})`;
+  document.getElementById('api-key-input').value = '';
+
+  // render model selector
+  const mrow = document.getElementById('model-row');
+  if (p === 'newapi') {
+    mrow.innerHTML = `
+      <div style="display:flex;gap:.4rem;margin-bottom:.4rem">
+        <input class="key-input" id="newapi-url" style="flex:1" placeholder="中转站地址，例如 https://api.newapi.pro/v1/chat/completions" value="${localStorage.getItem('mokku_url_newapi')||''}">
+      </div>
+      <div style="display:flex;gap:.4rem">
+        <select class="provider-sel" id="model-select" style="flex:1" onchange="onModelChange()">
+          ${cfg.models.map(m=>`<option>${m}</option>`).join('')}
+        </select>
+        <input class="key-input" id="model-custom" placeholder="自定义模型名" style="display:none;flex:1">
+      </div>`;
+  } else {
+    mrow.innerHTML = `
+      <select class="provider-sel" id="model-select" style="width:100%" onchange="onModelChange()">
+        ${cfg.models.map(m=>`<option>${m}</option>`).join('')}
+      </select>`;
+  }
+
+  const hints = {
+    claude: 'Key 从 console.anthropic.com 获取',
+    openai: 'Key 从 platform.openai.com 获取',
+    deepseek: 'Key 从 platform.deepseek.com 获取',
+    gemini: 'Key 从 aistudio.google.com 获取',
+    newapi: '填写你的中转站地址 + Key，模型名填写中转站支持的任意模型',
+  };
+  document.getElementById('api-hint').textContent = hints[p] || '';
+  updateKeyStatus();
+}
+
+function onModelChange() {
+  const sel = document.getElementById('model-select');
+  const custom = document.getElementById('model-custom');
+  if (!sel || !custom) return;
+  custom.style.display = sel.value === '自定义…' ? 'block' : 'none';
+}
+
+function onKeyInput() {
+  const inp = document.getElementById('api-key-input');
+  if (inp.value.includes('•')) inp.value = '';
+}
+
+// ═══════════════════════════════════════════════════════
+//  AI CALL ENGINE
+// ═══════════════════════════════════════════════════════
+async function callAI(systemPrompt, userPrompt, maxTokens = 1500) {
+  const provider = getProvider();
+  const key = getRawKey(provider);
+  if (!key) throw new Error('请先配置并保存 API Key');
+  const model = getModel();
+  const cfg = PROVIDER_CONFIG[provider];
+
+  // ── Claude native API ──
+  if (provider === 'claude') {
+    const res = await fetch(cfg.url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model, max_tokens: maxTokens, system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }] })
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({error:{message:res.statusText}})); throw new Error(e.error?.message || res.statusText); }
+    const d = await res.json();
+    return d.content.map(b => b.text || '').join('');
+  }
+
+  // ── Gemini ──
+  if (provider === 'gemini') {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+    const res = await fetch(url, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: systemPrompt + '\n\n' + userPrompt }] }],
+        generationConfig: { maxOutputTokens: maxTokens } })
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({error:{message:res.statusText}})); throw new Error(e.error?.message || res.statusText); }
+    const d = await res.json();
+    return d.candidates[0].content.parts[0].text;
+  }
+
+  // ── OpenAI / DeepSeek / newapi (all OpenAI-compatible) ──
+  let url;
+  if (provider === 'newapi') {
+    url = localStorage.getItem('mokku_url_newapi') || document.getElementById('newapi-url')?.value?.trim();
+    if (!url) throw new Error('请填写中转站地址');
+    if (!url.endsWith('/chat/completions')) {
+      // auto-append if user just gave base domain
+      url = url.replace(/\/+$/, '') + (url.includes('/v1') ? '/chat/completions' : '/v1/chat/completions');
+    }
+  } else {
+    url = cfg.url;
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + key },
+    body: JSON.stringify({ model, max_tokens: maxTokens,
+      messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }] })
+  });
+  if (!res.ok) { const e = await res.json().catch(()=>({error:{message:res.statusText}})); throw new Error(e.error?.message || res.statusText); }
+  const d = await res.json();
+  return d.choices[0].message.content;
+}
+
+// ═══════════════════════════════════════════════════════
+//  AI FUNCTIONS UI
+// ═══════════════════════════════════════════════════════
+function setFn(fn) {
+  curAiFn = fn;
+  ['analyze','continue','compare','journal','custom'].forEach(f => {
+    const el = document.getElementById('fn-' + f);
+    if (el) el.classList.toggle('active', f === fn);
+  });
+  renderAiWorkspace();
+}
+
+function renderAiWorkspace() {
+  const ws = document.getElementById('ai-workspace');
+
+  if (curAiFn === 'analyze') {
+    ws.innerHTML = `
+      <div class="ai-input-area">
+        <div class="ai-input-label">粘贴需要分析的文段</div>
+        <textarea class="ai-textarea" id="ai-text-input" rows="5" placeholder="粘贴一段你喜欢的文字…&#10;&#10;AI将执行两步分析：&#10;① 深度提炼风格特征（详细报告）&#10;② 自动浓缩为可直接使用的提示词指令"></textarea>
+      </div>
+      <button class="ai-run-btn" id="ai-run-btn" onclick="runAnalyze()">
+        <span class="spin" id="ai-spin" style="display:none"></span>
+        🔍 分析文风（两步自动完成）
+      </button>
+
+      <div style="flex-shrink:0">
+        <div class="ai-input-label" style="margin-bottom:.4rem">① 详细分析报告</div>
+        <div class="ai-result" id="ai-result" style="min-height:80px;max-height:200px;overflow-y:auto">分析结果将显示在这里…</div>
+      </div>
+
+      <div id="condensed-section" style="display:none;flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+          <div class="ai-input-label">② 浓缩提示词指令 <span style="color:var(--green);font-size:.6rem;margin-left:.3rem">✓ 可直接复制到提示词</span></div>
+          <button onclick="copyCondensed()" style="padding:.2rem .6rem;background:var(--green-dim);border:1px solid var(--green);color:var(--green);border-radius:4px;cursor:pointer;font-size:.65rem;font-family:'Noto Sans SC',sans-serif">📋 复制指令</button>
+        </div>
+        <div id="condensed-result" style="background:rgba(93,158,106,0.08);border:1px solid var(--green);border-radius:6px;padding:.8rem;font-family:'Noto Serif SC',serif;font-size:.76rem;line-height:1.85;color:var(--text);white-space:pre-wrap"></div>
+      </div>
+
+      <div style="display:flex;gap:.4rem;flex-shrink:0">
+        <button class="save-to-lib-btn" onclick="saveAnalyzedStyle()" style="flex:1">💾 保存到当前小说</button>
+        <button class="save-to-lib-btn" onclick="saveAnalyzedStyleGlobal()" style="flex:1;background:var(--blue-dim);border-color:var(--blue);color:var(--blue)">🌐 保存到全局库</button>
+      </div>
+    `;
+  }
+
+  else if (curAiFn === 'continue') {
+    const novel = DB.novels.find(x => x.id === curNovelId);
+    const styles = novel ? [...(novel.styles||[]), ...DB.globalStyles] : DB.globalStyles;
+    ws.innerHTML = `
+      <div class="ai-input-area">
+        <div class="ai-input-label">选择参考文风样本</div>
+        <select class="provider-sel" id="style-select" style="width:100%;margin-bottom:.6rem">
+          <option value="">— 不指定，使用全部已录入样本 —</option>
+          ${styles.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+        </select>
+        <div class="ai-input-label" style="margin-top:.4rem">写作要求 / 场景描述</div>
+        <textarea class="ai-textarea" id="ai-text-input" rows="4" placeholder="描述你想写的场景…&#10;例：谢云舒第一次看到林珩在月色下读书，心里有些触动但不愿承认"></textarea>
+      </div>
+      <button class="ai-run-btn" id="ai-run-btn" onclick="runContinue()">
+        <span class="spin" id="ai-spin" style="display:none"></span>
+        ✍️ 按风格生成片段
+      </button>
+      <div class="ai-result" id="ai-result" style="flex:1">生成内容将显示在这里…</div>
+      <button class="save-to-lib-btn" onclick="copyAiResult()" style="flex-shrink:0">📋 复制内容</button>
+    `;
+  }
+
+  else if (curAiFn === 'compare') {
+    const novel = DB.novels.find(x => x.id === curNovelId);
+    const styles = novel ? [...(novel.styles||[]), ...DB.globalStyles] : DB.globalStyles;
+    if (styles.length < 2) {
+      ws.innerHTML = `<div class="empty"><div class="ei">⚖️</div><div style="font-size:.8rem;text-align:center">需要至少2个文风样本才能对比。<br>先在「文风样本」标签页添加样本。</div></div>`;
+      return;
+    }
+    ws.innerHTML = `
+      <div class="ai-input-area">
+        <div class="ai-input-label">选择要对比的两个样本</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <select class="provider-sel" id="cmp-a">
+            ${styles.map((s,i) => `<option value="${i}">${s.name}</option>`).join('')}
+          </select>
+          <select class="provider-sel" id="cmp-b">
+            ${styles.map((s,i) => `<option value="${i}" ${i===1?'selected':''}>${s.name}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <button class="ai-run-btn" id="ai-run-btn" onclick="runCompare()">
+        <span class="spin" id="ai-spin" style="display:none"></span>
+        ⚖️ 分析差异
+      </button>
+      <div class="ai-result" id="ai-result" style="flex:1">对比结果将显示在这里…</div>
+    `;
+  }
+
+  else if (curAiFn === 'journal') {
+    const n = curNovel(); const ch = curChapter();
+    ws.innerHTML = `
+      <div class="ai-input-area">
+        <div class="ai-input-label">粘贴本章正文（或描述发生了什么）</div>
+        <textarea class="ai-textarea" id="ai-text-input" rows="6" placeholder="粘贴本章正文，或直接描述本章发生的事件…&#10;&#10;AI将自动生成50-60字的章节摘要并可一键存入「章节记忆」。"></textarea>
+      </div>
+      <div style="display:flex;gap:.4rem;align-items:center;flex-shrink:0">
+        <span style="font-size:.65rem;color:var(--text3)">章节：</span>
+        <input id="f-jch-ai" type="number" min="0" value="${ch}" style="width:55px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:.28rem .4rem;color:var(--text);font-size:.75rem;outline:none">
+        <input id="f-jtitle-ai" placeholder="章节标题" value="第${ch}章" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:.28rem .5rem;color:var(--text);font-size:.75rem;outline:none">
+      </div>
+      <button class="ai-run-btn" id="ai-run-btn" onclick="runJournal()">
+        <span class="spin" id="ai-spin" style="display:none"></span>
+        📓 生成章节摘要
+      </button>
+      <div class="ai-result" id="ai-result" style="max-height:130px">摘要将显示在这里…</div>
+      <button class="save-to-lib-btn" onclick="saveJournalEntry()" style="flex-shrink:0">💾 存入章节记忆日志</button>
+    `;
+  }
+
+  else if (curAiFn === 'custom') {
+    ws.innerHTML = `
+      <div class="ai-input-area">
+        <div class="ai-input-label">自由提问（当前小说设定会自动附上作为上下文）</div>
+        <textarea class="ai-textarea" id="ai-text-input" rows="5" placeholder="例如：&#10;- 帮我分析谢云舒这个角色有哪些矛盾点&#10;- 第二幕的剧情逻辑是否合理&#10;- 给我一些推动误会产生的具体情节点子"></textarea>
+      </div>
+      <button class="ai-run-btn" id="ai-run-btn" onclick="runCustom()">
+        <span class="spin" id="ai-spin" style="display:none"></span>
+        💬 发送
+      </button>
+      <div class="ai-result" id="ai-result" style="flex:1">回答将显示在这里…</div>
+      <button class="save-to-lib-btn" onclick="copyAiResult()" style="flex-shrink:0">📋 复制回答</button>
+    `;
+  }
+}
+
+function setAiBusy(busy) {
+  const btn = document.getElementById('ai-run-btn');
+  const spin = document.getElementById('ai-spin');
+  if (btn) btn.disabled = busy;
+  if (spin) spin.style.display = busy ? 'inline-block' : 'none';
+}
+
+function showAiResult(text) {
+  const el = document.getElementById('ai-result');
+  if (el) { el.textContent = text; lastAiResult = text; }
+}
+
+async function runAnalyze() {
+  const text = document.getElementById('ai-text-input').value.trim();
+  if (!text) return toast('请先粘贴需要分析的文段');
+
+  setAiBusy(true);
+
+  // ── Step 1: Detailed analysis ──
+  const resultEl = document.getElementById('ai-result');
+  const condensedEl = document.getElementById('condensed-result');
+  const condensedSection = document.getElementById('condensed-section');
+  if (resultEl) resultEl.textContent = '第一步：深度分析文风特征…';
+  if (condensedSection) condensedSection.style.display = 'none';
+
+  try {
+    const detailed = await callAI(
+      '你是一位专业文学编辑，擅长分析中文写作风格。请用准确专业的语言提炼文段的风格特征。',
+      `分析以下文段的写作风格，从六个维度逐一说明（每点2-4句）：
+
+1. 叙事视角与距离
+2. 句式结构与节奏
+3. 意象与修辞手法
+4. 情感表达方式
+5. 语言用词风格（文言程度、口语化程度等）
+6. 总结：一句话描述这种风格
+
+文段：\n\n${text}`,
+      1500
+    );
+    lastDetailedAnalysis = detailed;
+    if (resultEl) resultEl.textContent = detailed;
+    lastAiResult = detailed;
+
+    // ── Step 2: Condense to prompt directive ──
+    if (resultEl) resultEl.textContent = detailed + '\n\n\n⏳ 第二步：正在浓缩为提示词指令…';
+
+    const condensed = await callAI(
+      '你是提示词工程专家，专门将文风分析报告提炼为简洁高效的AI写作指令。',
+      `根据以下文风分析报告，写一段简洁的"写作风格指令"，供直接插入AI写作提示词使用。
+
+要求：
+- 字数控制在80-150字以内
+- 使用祈使句，直接告诉AI"如何写"
+- 聚焦最核心的3-4个风格特征，不要面面俱到
+- 给出1-2个关键词或具体手法作为锚点
+- 格式：直接输出指令文字，不要任何前缀或解释
+
+分析报告：\n\n${detailed}`,
+      400
+    );
+    lastCondensedPrompt = condensed;
+    if (resultEl) resultEl.textContent = detailed;
+    if (condensedEl) condensedEl.textContent = condensed;
+    if (condensedSection) condensedSection.style.display = 'block';
+
+  } catch(e) {
+    if (resultEl) resultEl.textContent = '❌ 错误：' + e.message;
+  }
+  setAiBusy(false);
+}
+
+function copyCondensed() {
+  if (!lastCondensedPrompt) return toast('请先运行分析');
+  navigator.clipboard.writeText(lastCondensedPrompt).then(() => toast('✅ 提示词指令已复制'));
+}
+
+async function runContinue() {
+  const task = document.getElementById('ai-text-input').value.trim();
+  if (!task) return toast('请描述写作要求');
+  const novel = DB.novels.find(x => x.id === curNovelId);
+  const selId = document.getElementById('style-select').value;
+
+  // gather style references
+  const allStyles = novel ? [...(novel.styles||[]), ...DB.globalStyles] : DB.globalStyles;
+  let styleRef = '';
+  if (selId) {
+    const s = allStyles.find(x => x.id === selId);
+    if (s) styleRef = `\n\n请严格模仿以下文段的写作风格：\n\n${s.content}`;
+  } else if (allStyles.length > 0) {
+    styleRef = `\n\n参考以下文风样本的综合风格：\n\n${allStyles.slice(0,3).map(s=>`【${s.name}】\n${s.content}`).join('\n\n')}`;
+  }
+
+  let ctx = '';
+  if (novel) {
+    ctx = `当前小说：《${novel.title}》（${novel.genre}）\n`;
+    if (novel.characters?.length) ctx += `主要人物：${novel.characters.map(c=>`${c.name}（${c.role}）`).join('、')}\n`;
+    if (novel.rules) ctx += `写作规则：${novel.rules}\n`;
+  }
+
+  setAiBusy(true);
+  showAiResult('AI 生成中…');
+  try {
+    const result = await callAI(
+      '你是一位专业中文小说创作者，擅长模仿指定文风进行写作。' + styleRef,
+      `${ctx}\n请根据以下要求创作一段小说文字（300-500字）：\n\n${task}`
+    );
+    showAiResult(result);
+  } catch(e) { showAiResult('❌ 错误：' + e.message); }
+  setAiBusy(false);
+}
+
+async function runCompare() {
+  const novel = DB.novels.find(x => x.id === curNovelId);
+  const styles = novel ? [...(novel.styles||[]), ...DB.globalStyles] : DB.globalStyles;
+  const ai = parseInt(document.getElementById('cmp-a').value);
+  const bi = parseInt(document.getElementById('cmp-b').value);
+  if (ai === bi) return toast('请选择两个不同的样本');
+  const sa = styles[ai], sb = styles[bi];
+
+  setAiBusy(true);
+  showAiResult('AI 对比分析中…');
+  try {
+    const result = await callAI(
+      '你是专业文学评论家，擅长对比分析中文写作风格差异。',
+      `请对比以下两段文字的写作风格差异，从叙事节奏、情感表达、用词选择、意象运用、句式结构五个维度逐一分析。最后给出总结：这两种风格各自适合什么类型的场景。\n\n**样本A：${sa.name}**\n${sa.content}\n\n**样本B：${sb.name}**\n${sb.content}`
+    );
+    showAiResult(result);
+  } catch(e) { showAiResult('❌ 错误：' + e.message); }
+  setAiBusy(false);
+}
+
+async function runCustom() {
+  const q = document.getElementById('ai-text-input').value.trim();
+  if (!q) return toast('请先输入问题');
+  const novel = DB.novels.find(x => x.id === curNovelId);
+  const ch = curChapter();
+  let ctx = '';
+  if (novel) {
+    ctx = `【当前小说背景】\n书名：《${novel.title}》 类型：${novel.genre}\n简介：${novel.synopsis||'无'}\n`;
+    if (novel.characters?.length) ctx += `人物：${novel.characters.map(c=>`${c.name}(${c.role},${c.age}岁)`).join('、')}\n`;
+    const ws = worldSnapshot(novel, ch);
+    if (ws.summary) ctx += `世界观：${ws.summary}\n`;
+  }
+  setAiBusy(true);
+  showAiResult('AI 思考中…');
+  try {
+    const result = await callAI(
+      '你是一位专业的中文小说创作顾问，对叙事结构、人物塑造、世界观建构有深度理解。请根据提供的小说背景信息，精准回答创作问题。',
+      ctx + '\n' + q
+    );
+    showAiResult(result);
+  } catch(e) { showAiResult('❌ 错误：' + e.message); }
+  setAiBusy(false);
+}
+
+async function runJournal() {
+  const text = document.getElementById('ai-text-input').value.trim();
+  if (!text) return toast('请先输入章节内容或描述');
+  setAiBusy(true);
+  showAiResult('生成摘要中…');
+  try {
+    const result = await callAI(
+      '你是专业小说编辑，擅长用极简语言概括章节内容。',
+      `请将以下章节内容概括为一段50-60字的摘要，包含：主要事件、人物情感变化、关键转折。写成一段话，不要用列表。\n\n${text}`,
+      400
+    );
+    showAiResult(result);
+  } catch(e) { showAiResult('❌ 错误：' + e.message); }
+  setAiBusy(false);
+}
+
+function saveJournalEntry() {
+  if (!lastAiResult || lastAiResult.startsWith('❌')) return toast('请先生成摘要');
+  const n = curNovel(); if (!n) return toast('请先选择小说');
+  const ch = parseInt(document.getElementById('f-jch-ai')?.value) || curChapter();
+  const title = document.getElementById('f-jtitle-ai')?.value || `第${ch}章`;
+  n.journal = n.journal||[];
+  n.journal.push({id:'j'+Date.now(), chapter:ch, title, summary:lastAiResult});
+  if (ch > (n.currentChapter||0)) { n.currentChapter = ch; refreshChapterPill(); }
+  persist(); toast('✅ 已存入章节记忆');
+  if (curTab==='journal') renderTab();
+}
+
+function saveAnalyzedStyle(global = false) {
+  if (!lastDetailedAnalysis && !lastAiResult) return toast('请先运行分析');
+  const text = document.getElementById('ai-text-input')?.value?.trim() || '';
+  const name = prompt('给这个文风样本起个名字：', '分析样本_' + new Date().toLocaleDateString('zh-CN'));
+  if (!name) return;
+  const entry = {
+    id: 's' + Date.now(), name, content: text,
+    analyzed: lastDetailedAnalysis || lastAiResult,
+    condensed: lastCondensedPrompt || null
+  };
+  if (global) {
+    DB.globalStyles.push(entry);
+  } else {
+    const novel = DB.novels.find(x => x.id === curNovelId);
+    if (!novel) return toast('请先选择一部小说');
+    novel.styles = novel.styles || [];
+    novel.styles.push(entry);
+  }
+  persist();
+  toast(`✅ 已保存到${global?'全局文风库':'当前小说样本库'}（含浓缩指令）`);
+}
+
+function saveAnalyzedStyleGlobal() { saveAnalyzedStyle(true); }
+
+function copyAiResult() {
+  if (!lastAiResult) return toast('没有内容可复制');
+  navigator.clipboard.writeText(lastAiResult).then(() => toast('✅ 已复制'));
+}
+
+// ═══════════════════════════════════════════════════════
+//  RIGHT PANEL TABS
+// ═══════════════════════════════════════════════════════
+function switchRpTab(tab) {
+  curRpTab = tab;
+  ['prompt','lorebook','ai','pv'].forEach(t => {
+    document.getElementById('rpt-' + t).classList.toggle('active', t === tab);
+    const el = document.getElementById('tab-' + t);
+    if (el) el.style.display = t === tab ? 'flex' : 'none';
+  });
+  if (tab === 'ai') { loadApiKey(); renderAiWorkspace(); }
+  if (tab === 'pv') renderPvList();
+}
+
+// ─── CHAPTER PILL ───
+function refreshChapterPill() {
+  const n = curNovel();
+  const pill = document.getElementById('chapter-pill');
+  const sel = document.getElementById('global-chapter-sel');
+  if (!n) { pill.style.display = 'none'; return; }
+  pill.style.display = 'flex';
+  const chapters = new Set([0]);
+  (n.journal||[]).forEach(j => chapters.add(j.chapter));
+  (n.characters||[]).flatMap(c=>(c.arc||[]).map(a=>a.chapter)).forEach(c=>chapters.add(c));
+  (n.worldArc||[]).forEach(e=>chapters.add(e.chapter));
+  (n.relations||[]).flatMap(r=>(r.states||[]).map(s=>s.chapter)).forEach(c=>chapters.add(c));
+  sel.innerHTML = [...chapters].sort((a,b)=>a-b).map(c=>
+    `<option value="${c}" ${c===n.currentChapter?'selected':''}>${c===0?'初始状态':'第'+c+'章后'}</option>`
+  ).join('');
+}
+
+function onChapterChange() {
+  const n = curNovel(); if (!n) return;
+  n.currentChapter = parseInt(document.getElementById('global-chapter-sel').value) || 0;
+  persist(); renderNovel();
+}
+
+// ─── TAG FILTER (right panel) ───
+function refreshRpTagFilter() {
+  const n = curNovel();
+  const el = document.getElementById('rp-tag-filter');
+  if (!el) return;
+  if (!n || !(n.novelTags||[]).length) {
+    el.innerHTML = `<span style="font-size:.63rem;color:var(--text3)">选择小说后显示标签</span>`;
+    return;
+  }
+  activeTagFilter.clear();
+  el.innerHTML = `<span style="font-size:.6rem;color:var(--text3);margin-right:.15rem;line-height:22px">筛选：</span>` +
+    n.novelTags.map(t => tagBadge(t, n.novelTags, `toggleRpTag('${t}',this)`)).join('') +
+    `<span onclick="clearRpTags()" style="font-size:.6rem;color:var(--text3);cursor:pointer;padding:.1rem .4rem;border:1px dashed var(--border2);border-radius:20px;margin:.1rem">全选</span>`;
+}
+
+function toggleRpTag(tag, el) {
+  const n = curNovel(); if (!n) return;
+  if (activeTagFilter.has(tag)) {
+    activeTagFilter.delete(tag);
+    el.style.fontWeight = '400';
+    el.style.background = tagColor(tag, n.novelTags) + '18';
+  } else {
+    activeTagFilter.add(tag);
+    el.style.fontWeight = '600';
+    el.style.background = tagColor(tag, n.novelTags) + '33';
+  }
+}
+function clearRpTags() {
+  activeTagFilter.clear();
+  refreshRpTagFilter();
+}
+
+// ─── PROMPT VERSION MANAGER ───
+function renderPvList() {
+  const n = curNovel();
+  const el = document.getElementById('pv-list'); if (!el) return;
+  const versions = n ? (n.promptVersions||[]) : [];
+  el.innerHTML = versions.length ? versions.map(v =>
+    `<div class="pv-item ${v.id===selectedPvId?'active':''}" onclick="selectPv('${v.id}')">
+      <div style="flex:1;min-width:0">
+        <div class="pv-name">${v.name}</div>
+        <div class="pv-meta">${v.createdAt||''} · ~${Math.round((v.content||'').length/1.8)}token</div>
+      </div>
+      <button class="iBtn d" onclick="event.stopPropagation();deletePv('${v.id}')">🗑</button>
+    </div>`
+  ).join('') : `<div style="font-size:.72rem;color:var(--text3);text-align:center;padding:.8rem">暂无保存的版本</div>`;
+}
+
+function selectPv(id) {
+  selectedPvId = id;
+  const n = curNovel(); if (!n) return;
+  const v = (n.promptVersions||[]).find(x=>x.id===id);
+  document.getElementById('pv-content').textContent = v ? v.content : '';
+  renderPvList();
+}
+
+function saveCurrentPrompt() {
+  const n = curNovel(); if (!n) return toast('请先选择小说');
+  const content = document.getElementById('prompt-out').textContent;
+  if (!content || content.startsWith('请') || content.startsWith('⚠')) return toast('请先生成提示词');
+  const name = prompt('版本名称：', `版本_第${curChapter()}章_${new Date().toLocaleDateString('zh-CN')}`);
+  if (!name) return;
+  n.promptVersions = n.promptVersions||[];
+  n.promptVersions.push({id:'pv'+Date.now(), name, content, createdAt:new Date().toLocaleDateString('zh-CN')});
+  persist(); renderPvList(); toast('✅ 已保存版本');
+}
+
+function deletePv(id) {
+  const n = curNovel(); if (!n) return;
+  n.promptVersions = (n.promptVersions||[]).filter(v=>v.id!==id);
+  if (selectedPvId===id) { selectedPvId=null; document.getElementById('pv-content').textContent=''; }
+  persist(); renderPvList();
+}
+
+function deleteSelectedPv() { if (selectedPvId) deletePv(selectedPvId); }
+
+// ═══════════════════════════════════════════════════════
+//  SIDEBAR
+// ═══════════════════════════════════════════════════════
+function renderSidebar() {
+  document.getElementById('novel-list').innerHTML = DB.novels.map(n => `
+    <button class="nb ${n.id===curNovelId?'active':''}" onclick="selectNovel('${n.id}')">
+      <span style="font-family:'Noto Serif SC',serif;flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.title}</span>
+      <span class="gt">${n.genre||'—'}</span>
+    </button>
+  `).join('');
+}
+
+function selectNovel(id) {
+  curNovelId = id; curTab = 'chars';
+  activeTagFilter.clear();
+  document.querySelectorAll('.gb').forEach(b => b.classList.remove('active'));
+  renderSidebar(); renderNovel();
+  refreshChapterPill(); refreshRpTagFilter();
+  if (curRpTab === 'ai') renderAiWorkspace();
+  if (curRpTab === 'pv') renderPvList();
+}
+
+// ═══════════════════════════════════════════════════════
+//  NOVEL VIEW
+// ═══════════════════════════════════════════════════════
+function renderNovel() {
+  const n = DB.novels.find(x => x.id === curNovelId);
+  if (!n) return;
+  const ch = curChapter();
+  document.getElementById('main').innerHTML = `
+    <div class="mhdr">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem">
+        <div>
+          <div class="ntitle">${n.title}</div>
+          <div class="nmeta">
+            <span class="mbadge">${n.genre||'未分类'}</span>
+            <span class="mbadge" style="border-color:var(--gold);color:var(--gold)">第${ch}章${ch===0?'·初始':'·后'}</span>
+          </div>
+          ${n.synopsis?`<div class="nsynop">${n.synopsis}</div>`:''}
+        </div>
+        <div style="display:flex;gap:.35rem;flex-shrink:0">
+          <button class="btn btn-g" onclick="openEditNovel()">编辑</button>
+          <button class="btn btn-d" onclick="deleteNovel('${n.id}')">删除</button>
+        </div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="sn">${(n.characters||[]).length}</span> 人物</div>
+      <div class="stat"><span class="sn">${(n.relations||[]).length}</span> 关系</div>
+      <div class="stat"><span class="sn">${(n.plot||[]).length}</span> 剧情</div>
+      <div class="stat"><span class="sn">${(n.styles||[]).length}</span> 文风</div>
+      <div class="stat"><span class="sn">${(n.journal||[]).length}</span> 章节记忆</div>
+    </div>
+    <div class="tabs">
+      <div class="tab ${curTab==='chars'?'active':''}" onclick="st('chars')">👤 人物 <span class="cnt">${(n.characters||[]).length}</span></div>
+      <div class="tab ${curTab==='world'?'active':''}" onclick="st('world')">🌍 世界观</div>
+      <div class="tab ${curTab==='plot'?'active':''}" onclick="st('plot')">📋 大纲 <span class="cnt">${(n.plot||[]).length}</span></div>
+      <div class="tab ${curTab==='relations'?'active':''}" onclick="st('relations')">💞 关系 <span class="cnt">${(n.relations||[]).length}</span></div>
+      <div class="tab ${curTab==='journal'?'active':''}" onclick="st('journal')">📓 记忆 <span class="cnt">${(n.journal||[]).length}</span></div>
+      <div class="tab ${curTab==='style'?'active':''}" onclick="st('style')">✍️ 文风 <span class="cnt">${(n.styles||[]).length}</span></div>
+      <div class="tab ${curTab==='rules'?'active':''}" onclick="st('rules')">📐 规则</div>
+    </div>
+    <div class="tc" id="tc"></div>
+  `;
+  renderTab();
+}
+
+function st(t) { curTab = t; renderNovel(); }
+
+function renderTab() {
+  const n = DB.novels.find(x => x.id === curNovelId);
+  const el = document.getElementById('tc');
+  if (!el || !n) return;
+  const ch = curChapter();
+
+  // ── CHARACTERS ──
+  if (curTab === 'chars') {
+    el.innerHTML = `<div class="cgrid">${(n.characters||[]).map(c => {
+      const snap = charSnapshot(c, ch);
+      const arcNodes = arcAtChapter(c.arc||[], ch);
+      return `<div class="ccard" onclick="openEditChar('${c.id}')">
+        <div class="chov">
+          <button class="iBtn" onclick="event.stopPropagation();openAddCharArc('${c.id}')" title="添加发展节点">＋弧</button>
+          <button class="iBtn d" onclick="event.stopPropagation();deleteChar('${c.id}')">🗑</button>
+        </div>
+        <div class="crole">${c.role||'—'} ${c.age?'· '+c.age+'岁':''} ${snap.hasEvolved?'<span style="color:var(--green);font-size:.58rem">●发展中</span>':''}</div>
+        <div class="cname">${c.name}</div>
+        <div class="cdesc">${c.summary||c.personality||'暂无摘要'}</div>
+        <div class="ctags">${(c.traits||[]).map(t=>`<span class="ctag">${t}</span>`).join('')}</div>
+        ${arcNodes.length ? `<div class="arc-mini">${arcNodes.map(a=>
+          `<div class="arc-mini-node"><div class="arc-mini-dot"></div><div class="arc-mini-txt"><div class="arc-mini-lbl">${a.label}</div>${a.changes}</div></div>`
+        ).join('')}</div>` : ''}
+      </div>`;
+    }).join('')}
+      <button class="addcard" onclick="openAddChar()"><div class="plus">＋</div>新增人物</button>
+    </div>`;
+
+  // ── WORLD ──
+  } else if (curTab === 'world') {
+    const ws = worldSnapshot(n, ch);
+    el.innerHTML = `<div class="twrap">
+      <div class="ctbar">
+        <div class="chint">世界背景设定${ws.hasEvolved?` <span style="color:var(--green);font-size:.68rem">（第${ch}章已有变化）</span>`:''}
+        </div>
+        <div style="display:flex;gap:.3rem">
+          <button class="btn btn-g" onclick="openEditText('world','世界观设定')">✏️ 编辑</button>
+          <button class="btn btn-g" onclick="openAddWorldArc()">＋ 发展节点</button>
+        </div>
+      </div>
+      <div class="layer-toggle">
+        <div class="ltab active" id="wl-summary" onclick="switchWorldLayer('summary')">摘要</div>
+        <div class="ltab" id="wl-detail" onclick="switchWorldLayer('detail')">完整设定</div>
+      </div>
+      <div class="cblock ${n.worldSummary||n.world?'':'empty'}" id="world-block">${n.worldSummary||n.world||'暂无世界观…'}</div>
+      ${ws.hasEvolved?`<div style="margin-top:.7rem">
+        <div style="font-size:.65rem;color:var(--green);margin-bottom:.35rem">📍 第${ch}章前的设定演变：</div>
+        ${arcAtChapter(n.worldArc||[], ch).map(e=>
+          `<div style="background:rgba(93,158,106,.07);border:1px solid var(--border);border-radius:5px;padding:.55rem .8rem;margin-bottom:.35rem;font-size:.73rem;color:var(--text2);line-height:1.65;font-family:'Noto Serif SC',serif">
+            <span style="color:var(--green);font-size:.6rem">第${e.chapter}章后：</span> ${e.changes}
+          </div>`).join('')}
+      </div>`:''}
+    </div>`;
+
+  // ── PLOT ──
+  } else if (curTab === 'plot') {
+    const plot = n.plot||[];
+    el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <div class="chint">故事主要剧情节点</div>
+        <button class="btn btn-g" onclick="openAddPlot()">＋ 新增节点</button></div>
+      <div class="tline">
+        <div class="tline-l"></div>
+        ${plot.map((p,i)=>`<div class="titem">
+          <div class="tdot ${p.done?'done':''}" onclick="togglePlotDone('${p.id}')" title="点击切换完成">${i+1}</div>
+          <div class="tbody">
+            <div class="tact">${p.act||''}</div>
+            <div class="ttitle">${p.title}</div>
+            <div class="tdesc">${p.desc||''}</div>
+            <div class="tacts">
+              <button class="iBtn" onclick="openEditPlot('${p.id}')">✏️</button>
+              <button class="iBtn d" onclick="deletePlot('${p.id}')">🗑</button>
+            </div>
+          </div></div>`).join('')}
+        ${plot.length===0?`<div class="empty"><div class="ei">📋</div><div>暂无剧情节点</div></div>`:''}
+      </div>`;
+
+  // ── RELATIONS ──
+  } else if (curTab === 'relations') {
+    const rels = n.relations||[];
+    el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem">
+      <div class="chint">角色关系与张力（当前：第${ch}章）</div>
+      <button class="btn btn-g" onclick="openAddRelation()">＋ 新增关系</button></div>
+      <div style="display:grid;gap:.6rem">
+      ${rels.map(r => {
+        const cur = relAtChapter(r, ch);
+        const pct = Math.round((r.tension||0) * 10);
+        const col = pct<40?'var(--green)':pct<70?'var(--gold)':'var(--red)';
+        const recentStates = (r.states||[]).filter(s=>s.chapter<=ch).sort((a,b)=>b.chapter-a.chapter);
+        return `<div class="rel-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+            <div class="rel-pair">
+              <span class="rel-name">${r.charA}</span>
+              <span style="color:var(--text3);font-size:.75rem;margin:0 .2rem">⇄</span>
+              <span class="rel-name">${r.charB}</span>
+            </div>
+            <div style="display:flex;gap:.2rem">
+              <button class="iBtn" onclick="openAddRelNode('${r.id}')" title="记录当前状态">＋</button>
+              <button class="iBtn d" onclick="deleteRelation('${r.id}')">🗑</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.45rem">
+            <span style="font-size:.6rem;color:var(--text3)">张力</span>
+            <div class="tension-bar"><div class="tension-fill" style="width:${pct}%;background:${col}"></div></div>
+            <span style="font-size:.64rem;color:${col}">${r.tension||0}/10</span>
+          </div>
+          ${cur?`<div class="rel-desc">${cur.desc}</div>`:'<div class="rel-desc" style="color:var(--text3)">无初始状态记录</div>'}
+          ${recentStates.length>1?`<div style="margin-top:.4rem;font-size:.63rem;color:var(--text3)">历史节点：${recentStates.slice(1).map(s=>`第${s.chapter}章`).join('、')}</div>`:''}
+        </div>`;
+      }).join('')}
+      ${rels.length===0?`<div class="empty"><div class="ei">💞</div><div>暂无关系记录</div></div>`:''}
+      </div>`;
+
+  // ── JOURNAL ──
+  } else if (curTab === 'journal') {
+    const journal = [...(n.journal||[])].sort((a,b)=>a.chapter-b.chapter);
+    el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem">
+      <div class="chint">章节写作记忆 <span style="color:var(--text3);font-size:.68rem">（生成提示词时默认注入最近5章摘要）</span></div>
+      <button class="btn btn-g" onclick="openAddJournal()">＋ 手动添加</button></div>
+      <div style="display:flex;flex-direction:column;gap:.5rem;max-width:680px">
+      ${journal.map(j=>`<div class="jentry">
+        <div class="jchap">
+          <strong>${j.chapter===0?'初始':'第'+j.chapter}</strong>
+          <span class="jchap-meta">${j.title||'章'}</span>
+          ${j.chapter===ch?`<span style="color:var(--gold);font-size:.58rem;display:block">当前</span>`:''}
+        </div>
+        <div class="jdiv"></div>
+        <div style="flex:1">
+          <div class="jsummary">${j.summary}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.2rem;flex-shrink:0">
+          <button class="iBtn" onclick="openEditJournal('${j.id}')">✏️</button>
+          <button class="iBtn d" onclick="deleteJournal('${j.id}')">🗑</button>
+        </div>
+      </div>`).join('')}
+      ${journal.length===0?`<div class="empty"><div class="ei">📓</div><div>暂无章节记忆</div><div style="font-size:.73rem;color:var(--text3)">可在右侧AI面板用「📓 生成摘要」功能自动生成</div></div>`:''}
+      </div>`;
+
+  // ── STYLE ──
+  } else if (curTab === 'style') {
+    el.innerHTML = `<div class="chint" style="margin-bottom:.9rem">文风样本可在右侧「AI」面板中提炼特征，浓缩成提示词指令后使用更省token</div>
+      <div class="sgrid">${(n.styles||[]).map((s,i)=>`
+        <div class="scard">
+          <div class="scard-hdr">
+            <div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+              <span class="sname">${s.name}</span>
+              ${s.condensed?`<span class="condensed-badge">已提炼</span>`:s.analyzed?`<span class="analyzed-badge">已分析</span>`:''}
+            </div>
+            <div style="display:flex;gap:.3rem">
+              ${s.analyzed?`<button class="iBtn" onclick="viewAnalysis(${i})" title="查看分析">🔍</button>`:''}
+              <button class="iBtn d" onclick="deleteStyle(${i})">🗑</button>
+            </div>
+          </div>
+          <div class="scard-body">${s.content}</div>
+          ${s.condensed?`<div class="condensed-strip">✦ ${s.condensed}</div>`:''}
+        </div>`).join('')}
+        <button class="addcard" onclick="openAddStyle()"><div class="plus">＋</div>添加文风样本</button>
+      </div>`;
+
+  // ── RULES ──
+  } else if (curTab === 'rules') {
+    el.innerHTML = `<div class="twrap">
+      <div class="ctbar"><div class="chint">AI必须遵守的写作约束</div>
+        <button class="btn btn-g" onclick="openEditText('rules','写作规则')">✏️ 编辑</button></div>
+      <div class="cblock ${n.rules?'':'empty'}">${n.rules||'暂无写作规则…'}</div></div>`;
+  }
+}
+
+function switchWorldLayer(layer) {
+  const n = curNovel(); if (!n) return;
+  document.getElementById('wl-summary')?.classList.toggle('active', layer==='summary');
+  document.getElementById('wl-detail')?.classList.toggle('active', layer==='detail');
+  const block = document.getElementById('world-block');
+  if (block) block.textContent = layer==='summary' ? (n.worldSummary||'暂无摘要') : (n.world||'暂无详情');
+}
+
+function viewAnalysis(i) {
+  const n = DB.novels.find(x => x.id === curNovelId);
+  const s = n.styles[i];
+  openModal('文风分析结果：' + s.name, `
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:1rem;font-family:'Noto Serif SC',serif;font-size:.82rem;line-height:1.9;color:var(--text2);white-space:pre-wrap;max-height:400px;overflow-y:auto">${s.analyzed}</div>
+  `, 'view-only');
+  document.getElementById('modal-body').nextElementSibling.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+//  MODAL
+// ═══════════════════════════════════════════════════════
+function openModal(title, body, mode, payload) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('modal-body').nextElementSibling.style.display = 'flex';
+  modalMode = mode; modalPayload = payload;
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  modalMode = null; modalPayload = null;
+}
+
+function commitModal() {
+  if (modalMode === 'new-novel') {
+    const t = document.getElementById('f-title').value.trim();
+    if (!t) return toast('请输入标题');
+    const n = { id:'n'+Date.now(), title:t, genre:document.getElementById('f-genre').value,
+      synopsis:document.getElementById('f-synopsis').value,
+      world:'', worldSummary:'', worldArc:[], rules:'',
+      novelTags:['主线'], currentChapter:0,
+      characters:[], relations:[], plot:[], styles:[], journal:[], promptVersions:[] };
+    DB.novels.push(n); persist(); renderSidebar(); selectNovel(n.id); closeModal();
+  } else if (modalMode === 'edit-novel') {
+    const n = DB.novels.find(x => x.id === curNovelId);
+    n.title = document.getElementById('f-title').value;
+    n.genre = document.getElementById('f-genre').value;
+    n.synopsis = document.getElementById('f-synopsis').value;
+    persist(); renderSidebar(); renderNovel(); closeModal();
+  } else if (modalMode === 'add-char' || modalMode === 'edit-char') {
+    const n = DB.novels.find(x => x.id === curNovelId);
+    const traits = [...document.querySelectorAll('.tchip.on')].map(el => el.textContent);
+    const d = { name:document.getElementById('f-name').value, role:document.getElementById('f-role').value,
+      age:document.getElementById('f-age').value,
+      summary:document.getElementById('f-summary')?.value||'',
+      appearance:document.getElementById('f-appearance').value,
+      personality:document.getElementById('f-personality').value, background:document.getElementById('f-background').value,
+      relations:document.getElementById('f-relations').value, traits,
+      arc: modalPayload?.arc||[] };
+    if (!d.name) return toast('请输入姓名');
+    if (modalMode === 'add-char') { d.id = 'c'+Date.now(); n.characters.push(d); }
+    else { const i = n.characters.findIndex(c => c.id === modalPayload.id); d.id = modalPayload.id; n.characters[i] = d; }
+    persist(); renderNovel(); closeModal();
+  } else if (modalMode === 'edit-text') {
+    const n = DB.novels.find(x => x.id === curNovelId);
+    const key = modalPayload.key;
+    if (key === 'world') {
+      n.worldSummary = document.getElementById('f-wsummary')?.value || n.worldSummary;
+      n.world = document.getElementById('f-text').value;
+    } else {
+      n[key] = document.getElementById('f-text').value;
+    }
+    persist(); renderNovel(); closeModal();
+  } else if (modalMode === 'add-plot' || modalMode === 'edit-plot') {
+    const n = DB.novels.find(x => x.id === curNovelId);
+    const d = { title:document.getElementById('f-ptitle').value, act:document.getElementById('f-pact').value, desc:document.getElementById('f-pdesc').value, done:false };
+    if (!d.title) return toast('请输入标题');
+    if (modalMode === 'add-plot') { d.id = 'p'+Date.now(); n.plot.push(d); }
+    else { const i = n.plot.findIndex(p => p.id === modalPayload.id); d.id = modalPayload.id; d.done = n.plot[i].done; n.plot[i] = d; }
+    persist(); renderNovel(); closeModal();
+  } else if (modalMode === 'add-style') {
+    const n = DB.novels.find(x => x.id === curNovelId);
+    const name = document.getElementById('f-sname').value.trim();
+    const content = document.getElementById('f-scontent').value.trim();
+    if (!name || !content) return toast('请填写完整');
+    n.styles.push({ id:'s'+Date.now(), name, content, summary:name, tags:[], analyzed:null, condensed:null });
+    persist(); renderNovel(); closeModal();
+  } else if (modalMode === 'add-gstyle') {
+    const name = document.getElementById('f-sname').value.trim();
+    const content = document.getElementById('f-scontent').value.trim();
+    if (!name || !content) return toast('请填写完整');
+    DB.globalStyles.push({ id:'gs'+Date.now(), name, content, summary:name, tags:[], analyzed:null, condensed:null });
+    persist(); showGlobalStyles(); closeModal();
+  } else if (modalMode === 'add-char-arc') {
+    const n = DB.novels.find(x => x.id === curNovelId);
+    const c = n.characters.find(x => x.id === modalPayload.id);
+    const ch = parseInt(document.getElementById('f-arc-ch').value) || 0;
+    const label = document.getElementById('f-arc-label').value || `第${ch}章`;
+    const changes = document.getElementById('f-arc-changes').value;
+    if (!changes) return toast('请填写变化描述');
+    c.arc = c.arc||[]; c.arc.push({chapter:ch, label, changes});
+    if (ch > (n.currentChapter||0)) { n.currentChapter = ch; refreshChapterPill(); }
+    persist(); renderNovel(); closeModal();
+  } else if (modalMode === 'add-world-arc') {
+    const n = DB.novels.find(x => x.id === curNovelId);
+    const ch = parseInt(document.getElementById('f-arc-ch').value) || 0;
+    const label = document.getElementById('f-arc-label').value || `第${ch}章后`;
+    const changes = document.getElementById('f-arc-changes').value;
+    if (!changes) return toast('请填写变化描述');
+    n.worldArc = n.worldArc||[]; n.worldArc.push({chapter:ch, label, changes});
+    if (ch > (n.currentChapter||0)) { n.currentChapter = ch; refreshChapterPill(); }
+    persist(); renderNovel(); closeModal();
+  } else if (modalMode === 'add-relation') {
+    const n = DB.novels.find(x => x.id === curNovelId);
+    const charA = document.getElementById('f-charA').value.trim();
+    const charB = document.getElementById('f-charB').value.trim();
+    if (!charA || !charB) return toast('请填写双方角色名');
+    const tension = parseInt(document.getElementById('f-tension').value) || 5;
+    const initDesc = document.getElementById('f-rel-init').value;
+    const rel = {id:'r'+Date.now(), charA, charB, tension, tags:[],
+      states: initDesc ? [{chapter:0, desc:initDesc}] : []};
+    n.relations = n.relations||[]; n.relations.push(rel);
+    persist(); renderNovel(); closeModal();
+  } else if (modalMode === 'add-rel-node') {
+    const n = DB.novels.find(x => x.id === curNovelId);
+    const rel = n.relations.find(x => x.id === modalPayload.id);
+    const ch = parseInt(document.getElementById('f-rel-ch').value) || 0;
+    const desc = document.getElementById('f-rel-desc').value;
+    if (!desc) return toast('请填写描述');
+    rel.states = rel.states||[]; rel.states.push({chapter:ch, desc});
+    if (ch > (n.currentChapter||0)) { n.currentChapter = ch; refreshChapterPill(); }
+    persist(); renderNovel(); closeModal();
+  } else if (modalMode === 'add-journal') {
+    const n = DB.novels.find(x => x.id === curNovelId);
+    const ch = parseInt(document.getElementById('f-jch').value) || 0;
+    const title = document.getElementById('f-jtitle').value || `第${ch}章`;
+    const summary = document.getElementById('f-jsummary').value;
+    if (!summary) return toast('请填写摘要');
+    n.journal = n.journal||[]; n.journal.push({id:'j'+Date.now(), chapter:ch, title, summary});
+    if (ch > (n.currentChapter||0)) { n.currentChapter = ch; refreshChapterPill(); }
+    persist(); renderTab(); closeModal();
+  } else if (modalMode === 'edit-journal') {
+    const n = DB.novels.find(x => x.id === curNovelId);
+    const j = n.journal.find(x => x.id === modalPayload.id);
+    j.chapter = parseInt(document.getElementById('f-jch').value) || j.chapter;
+    j.title = document.getElementById('f-jtitle').value || j.title;
+    j.summary = document.getElementById('f-jsummary').value;
+    persist(); renderTab(); closeModal();
+  }
+}
+
+// Form openers
+const GENRE_OPTS = (sel) => GENRES.map(g => `<option ${g===sel?'selected':''}>${g}</option>`).join('');
+
+function openNewNovel() {
+  openModal('新建小说', `
+    <div class="field"><label>小说名称 *</label><input id="f-title" placeholder="给你的故事起个名字"></div>
+    <div class="field"><label>类型</label><select id="f-genre">${GENRE_OPTS('')}</select></div>
+    <div class="field"><label>故事简介</label><textarea id="f-synopsis" placeholder="一两句话说清故事核心"></textarea></div>
+  `, 'new-novel');
+}
+
+function openEditNovel() {
+  const n = DB.novels.find(x => x.id === curNovelId);
+  openModal('编辑小说信息', `
+    <div class="field"><label>小说名称</label><input id="f-title" value="${n.title}"></div>
+    <div class="field"><label>类型</label><select id="f-genre">${GENRE_OPTS(n.genre)}</select></div>
+    <div class="field"><label>故事简介</label><textarea id="f-synopsis">${n.synopsis||''}</textarea></div>
+  `, 'edit-novel');
+}
+
+function deleteNovel(id) {
+  if (!confirm('确定删除这部小说的全部数据？')) return;
+  DB.novels = DB.novels.filter(n => n.id !== id);
+  if (curNovelId === id) { curNovelId = null; document.getElementById('main').innerHTML = `<div class="empty" style="height:100%"><div class="ei">📖</div><div>请从左侧选择小说</div></div>`; }
+  persist(); renderSidebar();
+}
+
+function charFormHTML(c) {
+  const sel = c ? (c.traits||[]) : [];
+  return `
+    <div class="frow">
+      <div class="field"><label>姓名 *</label><input id="f-name" value="${c?c.name:''}" placeholder="人物名字"></div>
+      <div class="field"><label>身份/角色</label><input id="f-role" value="${c?c.role:''}" placeholder="女主、反派…"></div>
+    </div>
+    <div class="field" style="max-width:120px"><label>年龄</label><input id="f-age" value="${c?c.age:''}" placeholder="18"></div>
+    <div class="field"><label>📌 摘要（50字内，注入摘要模式时使用）</label><input id="f-summary" value="${c?c.summary||'':''}" placeholder="一句话描述核心特质…"></div>
+    <div class="field"><label>外貌描述</label><textarea id="f-appearance" rows="2">${c?c.appearance:''}</textarea></div>
+    <div class="field"><label>性格特点</label><textarea id="f-personality" rows="2">${c?c.personality:''}</textarea></div>
+    <div class="field"><label>背景故事</label><textarea id="f-background" rows="2">${c?c.background:''}</textarea></div>
+    <div class="field"><label>人际关系</label><textarea id="f-relations" rows="2">${c?c.relations:''}</textarea></div>
+    <div class="field"><label>性格标签</label><div class="tchips">${TRAITS.map(t=>`<span class="tchip ${sel.includes(t)?'on':''}" onclick="this.classList.toggle('on')">${t}</span>`).join('')}</div></div>`;
+}
+
+function openAddChar() { openModal('新增人物', charFormHTML(null), 'add-char'); }
+function openEditChar(id) {
+  const n = DB.novels.find(x => x.id === curNovelId);
+  const c = n.characters.find(x => x.id === id);
+  openModal('编辑人物：' + c.name, charFormHTML(c), 'edit-char', c);
+}
+function deleteChar(id) {
+  if (!confirm('删除此人物？')) return;
+  const n = DB.novels.find(x => x.id === curNovelId);
+  n.characters = n.characters.filter(c => c.id !== id);
+  persist(); renderNovel();
+}
+function openEditText(key, label) {
+  const n = DB.novels.find(x => x.id === curNovelId);
+  const extraField = key==='world' ? `<div class="field"><label>世界观摘要（50字内，注入摘要模式时使用）</label><input id="f-wsummary" value="${(n.worldSummary||'').replace(/"/g,'&quot;')}" placeholder="概括世界核心设定…"></div>` : '';
+  openModal('编辑 · ' + label, `${extraField}<div class="field"><label>${label}${key==='world'?'（完整版）':''}</label><textarea id="f-text" rows="12" style="min-height:240px">${n[key]||''}</textarea></div>`, 'edit-text', {key});
+}
+
+// ─── ARC / RELATION / JOURNAL FORM OPENERS ───
+function openAddCharArc(charId) {
+  const n = curNovel(); const ch = curChapter();
+  openModal('添加人物发展节点', `
+    <div style="font-size:.74rem;color:var(--text3);margin-bottom:.7rem">记录这个角色在某章节后发生的变化，之后可通过顶栏「当前章节」切换查看对应状态。</div>
+    <div style="display:flex;gap:.5rem">
+      <div class="field" style="flex:1"><label>在第几章之后</label><input id="f-arc-ch" type="number" min="0" value="${ch+1}"></div>
+      <div class="field" style="flex:2"><label>节点标签</label><input id="f-arc-label" placeholder="如：第二章·被诬陷后"></div>
+    </div>
+    <div class="field"><label>变化描述（性格/外貌/关系/状态等）</label>
+      <textarea id="f-arc-changes" rows="5" placeholder="例：性格变化：防线有所松动，开始正视对林珩的信任感…&#10;外貌变化：因忧思消瘦，面色较前更为苍白…"></textarea></div>
+  `, 'add-char-arc', {id:charId});
+}
+
+function openAddWorldArc() {
+  const n = curNovel(); const ch = curChapter();
+  openModal('添加世界观发展节点', `
+    <div style="font-size:.74rem;color:var(--text3);margin-bottom:.7rem">记录世界观在某章节后的变化（战争、朝代更迭、规则改变等）。</div>
+    <div style="display:flex;gap:.5rem">
+      <div class="field" style="flex:1"><label>在第几章之后</label><input id="f-arc-ch" type="number" min="0" value="${ch+1}"></div>
+      <div class="field" style="flex:2"><label>节点标签</label><input id="f-arc-label" placeholder="如：战争开始后"></div>
+    </div>
+    <div class="field"><label>世界观变化描述</label>
+      <textarea id="f-arc-changes" rows="4" placeholder="例：朝廷开始清查世家，坊市宵禁提前，城内人心惶惶…"></textarea></div>
+  `, 'add-world-arc');
+}
+
+function openAddRelation() {
+  const n = curNovel();
+  const chars = (n.characters||[]).map(c=>c.name);
+  openModal('新增角色关系', `
+    <div style="display:flex;gap:.5rem">
+      <div class="field" style="flex:1"><label>角色 A</label>
+        <input id="f-charA" list="clist-a" placeholder="角色名">
+        <datalist id="clist-a">${chars.map(c=>`<option>${c}</option>`).join('')}</datalist>
+      </div>
+      <div class="field" style="flex:1"><label>角色 B</label>
+        <input id="f-charB" list="clist-b" placeholder="角色名">
+        <datalist id="clist-b">${chars.map(c=>`<option>${c}</option>`).join('')}</datalist>
+      </div>
+    </div>
+    <div class="field"><label>关系张力（0=平静，10=极度紧张）</label>
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <input id="f-tension" type="range" min="0" max="10" value="5" style="flex:1;accent-color:var(--gold)">
+        <span id="f-tension-val" style="color:var(--gold);font-size:.82rem;min-width:24px">5</span>
+      </div>
+    </div>
+    <div class="field"><label>初始关系状态（第0章）</label>
+      <textarea id="f-rel-init" rows="3" placeholder="描述两人此刻的关系状态…"></textarea></div>
+  `, 'add-relation');
+  // wire range display
+  setTimeout(()=>{const r=document.getElementById('f-tension');if(r)r.oninput=()=>document.getElementById('f-tension-val').textContent=r.value;},50);
+}
+
+function deleteRelation(id) {
+  if (!confirm('删除此关系？')) return;
+  const n = curNovel(); n.relations = n.relations.filter(r=>r.id!==id);
+  persist(); renderTab();
+}
+
+function openAddRelNode(relId) {
+  const n = curNovel(); const ch = curChapter();
+  openModal('记录关系状态节点', `
+    <div class="field"><label>章节序号</label><input id="f-rel-ch" type="number" min="0" value="${ch}"></div>
+    <div class="field"><label>当前关系状态描述</label>
+      <textarea id="f-rel-desc" rows="4" placeholder="描述此章节时两人的关系…&#10;例：共经被诬事件后，谢云舒开始信任林珩，两人距离拉近。"></textarea></div>
+  `, 'add-rel-node', {id:relId});
+}
+
+function openAddJournal() {
+  const n = curNovel(); const ch = curChapter();
+  openModal('手动添加章节记忆', `
+    <div style="display:flex;gap:.5rem">
+      <div class="field" style="flex:1"><label>章节序号</label><input id="f-jch" type="number" min="0" value="${ch}"></div>
+      <div class="field" style="flex:2"><label>章节标题</label><input id="f-jtitle" placeholder="第X章" value="第${ch}章"></div>
+    </div>
+    <div class="field"><label>摘要（60字内）</label>
+      <textarea id="f-jsummary" rows="4" placeholder="本章发生了什么、人物情感变化、关键转折…"></textarea></div>
+  `, 'add-journal');
+}
+
+function openEditJournal(id) {
+  const n = curNovel(); const j = n.journal.find(x=>x.id===id);
+  openModal('编辑章节记忆', `
+    <div style="display:flex;gap:.5rem">
+      <div class="field" style="flex:1"><label>章节序号</label><input id="f-jch" type="number" value="${j.chapter}"></div>
+      <div class="field" style="flex:2"><label>标题</label><input id="f-jtitle" value="${j.title||''}"></div>
+    </div>
+    <div class="field"><label>摘要</label><textarea id="f-jsummary" rows="4">${j.summary||''}</textarea></div>
+  `, 'edit-journal', j);
+}
+
+function deleteJournal(id) {
+  if (!confirm('删除？')) return;
+  const n = curNovel(); n.journal = n.journal.filter(j=>j.id!==id);
+  persist(); renderTab();
+}
+function openAddPlot() {
+  openModal('新增剧情节点', `
+    <div class="frow">
+      <div class="field"><label>幕/章标记</label><input id="f-pact" placeholder="第一幕"></div>
+      <div class="field"><label>节点标题 *</label><input id="f-ptitle" placeholder="简短标题"></div>
+    </div>
+    <div class="field"><label>内容描述</label><textarea id="f-pdesc" rows="4" placeholder="这个节点发生了什么…"></textarea></div>
+  `, 'add-plot');
+}
+function openEditPlot(id) {
+  const n = DB.novels.find(x => x.id === curNovelId);
+  const p = n.plot.find(x => x.id === id);
+  openModal('编辑剧情节点', `
+    <div class="frow">
+      <div class="field"><label>幕/章标记</label><input id="f-pact" value="${p.act||''}"></div>
+      <div class="field"><label>节点标题</label><input id="f-ptitle" value="${p.title||''}"></div>
+    </div>
+    <div class="field"><label>内容描述</label><textarea id="f-pdesc" rows="4">${p.desc||''}</textarea></div>
+  `, 'edit-plot', p);
+}
+function togglePlotDone(id) {
+  const n = DB.novels.find(x => x.id === curNovelId);
+  n.plot.find(x => x.id === id).done ^= 1;
+  persist(); renderTab();
+}
+function deletePlot(id) {
+  if (!confirm('删除此节点？')) return;
+  DB.novels.find(x => x.id === curNovelId).plot = DB.novels.find(x => x.id === curNovelId).plot.filter(p => p.id !== id);
+  persist(); renderNovel();
+}
+function openAddStyle() {
+  openModal('添加文风样本', `
+    <div class="field"><label>样本名称</label><input id="f-sname" placeholder="例：张爱玲式细腻"></div>
+    <div class="field"><label>文段内容</label><textarea id="f-scontent" rows="7" placeholder="粘贴希望AI学习的文段（100-300字最佳）…"></textarea></div>
+  `, 'add-style');
+}
+function deleteStyle(i) {
+  DB.novels.find(x => x.id === curNovelId).styles.splice(i,1);
+  persist(); renderTab();
+}
+
+// ═══════════════════════════════════════════════════════
+//  GLOBAL STYLES
+// ═══════════════════════════════════════════════════════
+function showGlobalStyles() {
+  curNovelId = null;
+  document.querySelectorAll('.gb').forEach(b => b.classList.remove('active'));
+  document.getElementById('gb-style').classList.add('active');
+  renderSidebar();
+  document.getElementById('main').innerHTML = `
+    <div class="mhdr">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="ntitle">全局文风样本库</div>
+        <button class="btn btn-g" onclick="openAddGlobalStyle()">＋ 添加</button>
+      </div>
+    </div>
+    <div class="tc">
+      <div class="chint" style="margin-bottom:.9rem">跨小说复用的文风样本，可在提示词生成时注入任意小说。</div>
+      <div class="sgrid">
+        ${DB.globalStyles.map((s,i)=>`
+          <div class="scard">
+            <div class="scard-hdr">
+              <div style="display:flex;align-items:center;gap:.4rem">
+                <span class="sname">${s.name}</span>
+                ${s.analyzed?`<span class="analyzed-badge">已分析</span>`:''}
+              </div>
+              <div style="display:flex;gap:.3rem">
+                ${s.analyzed?`<button class="iBtn" onclick="viewGlobalAnalysis(${i})">🔍</button>`:''}
+                <button class="iBtn d" onclick="deleteGlobalStyle(${i})">🗑</button>
+              </div>
+            </div>
+            <div class="scard-body">${s.content}</div>
+          </div>`).join('')}
+        <button class="addcard" onclick="openAddGlobalStyle()"><div class="plus">＋</div>添加全局样本</button>
+      </div>
+    </div>`;
+}
+
+function viewGlobalAnalysis(i) {
+  const s = DB.globalStyles[i];
+  openModal('文风分析：' + s.name, `<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:1rem;font-family:'Noto Serif SC',serif;font-size:.82rem;line-height:1.9;color:var(--text2);white-space:pre-wrap;max-height:400px;overflow-y:auto">${s.analyzed}</div>`, 'view-only');
+  document.getElementById('modal-body').nextElementSibling.style.display = 'none';
+}
+
+function openAddGlobalStyle() {
+  openModal('添加全局文风样本', `
+    <div class="field"><label>样本名称</label><input id="f-sname" placeholder="例：余华式留白"></div>
+    <div class="field"><label>文段内容</label><textarea id="f-scontent" rows="7" placeholder="粘贴文段…"></textarea></div>
+  `, 'add-gstyle');
+}
+function deleteGlobalStyle(i) {
+  if (!confirm('删除？')) return;
+  DB.globalStyles.splice(i,1);
+  persist(); showGlobalStyles();
+}
+
+// ═══════════════════════════════════════════════════════
+//  PROMPT GENERATOR
+// ═══════════════════════════════════════════════════════
+function getChecked(key) {
+  const el = document.querySelector(`.iopt[data-key="${key}"]`);
+  return el && el.classList.contains('on');
+}
+function getLbChecked(key) {
+  const el = document.querySelector(`.iopt[data-lbkey="${key}"]`);
+  return el && el.classList.contains('on');
+}
+function getLbConst(key) {
+  const el = document.querySelector(`.iopt[data-lbconst="${key}"]`);
+  return el && el.classList.contains('on');
+}
+
+function generatePrompt() {
+  const n = DB.novels.find(x => x.id === curNovelId);
+  if (!n) { document.getElementById('prompt-out').textContent = '⚠️ 请先选择一部小说'; return; }
+  const ch = curChapter();
+  const task = document.getElementById('task').value.trim();
+  const detailLevel = document.getElementById('detail-level')?.value || 'auto';
+
+  let p = `# 写作助手系统提示\n\n你是专业小说创作助手，正在协助创作《${n.title}》`;
+  if (n.genre) p += `（${n.genre}）`;
+  p += `。当前写作位置：第${ch}章${ch===0?'（初始状态）':'后'}。\n`;
+  if (n.synopsis) p += `\n简介：${n.synopsis}\n`;
+
+  // ── World (arc-aware) ──
+  if (getChecked('world') && (n.worldSummary||n.world)) {
+    const ws = worldSnapshot(n, ch);
+    const useDetail = detailLevel==='detail';
+    p += `\n${'─'.repeat(36)}\n## 世界观${ws.hasEvolved?`（第${ch}章当前状态）`:''}\n\n`;
+    p += useDetail ? ws.detail : ws.summary;
+    if (ws.hasEvolved) p += `\n\n【已发生的设定变化】\n${ws.arcNotes}`;
+    p += '\n';
+  }
+
+  // ── Characters (arc-aware, tag-filtered, summary/detail) ──
+  if (getChecked('chars') && (n.characters||[]).length) {
+    const filtered = n.characters.filter(c => tagMatch(c.tags));
+    if (filtered.length) {
+      p += `\n${'─'.repeat(36)}\n## 人物档案（第${ch}章当前状态）\n`;
+      filtered.forEach(c => {
+        const snap = charSnapshot(c, ch);
+        const useDetail = detailLevel==='detail' || (detailLevel==='auto' && activeTagFilter.size>0);
+        p += `\n### ${c.name}${c.role?`（${c.role}${c.age?'，'+c.age+'岁':''}）`:''}\n`;
+        if (useDetail) {
+          if (c.appearance) p += `外貌：${c.appearance}\n`;
+          if (c.personality) p += `性格：${c.personality}\n`;
+          if (c.background) p += `背景：${c.background}\n`;
+          if (c.relations) p += `关系：${c.relations}\n`;
+          if ((c.traits||[]).length) p += `标签：${c.traits.join('、')}\n`;
+        } else {
+          p += `${c.summary||c.personality||''}\n`;
+        }
+        if (snap.hasEvolved) p += `\n【本章前的变化】\n${snap.arcNotes}\n`;
+      });
+    }
+  }
+
+  // ── Relations ──
+  if (getChecked('relations') && (n.relations||[]).length) {
+    const filtered = n.relations.filter(r => tagMatch(r.tags));
+    if (filtered.length) {
+      p += `\n${'─'.repeat(36)}\n## 当前人物关系状态\n\n`;
+      filtered.forEach(r => {
+        const cur = relAtChapter(r, ch);
+        p += `${r.charA} ↔ ${r.charB}（张力 ${r.tension||0}/10）：${cur?cur.desc:'状态未记录'}\n`;
+      });
+    }
+  }
+
+  // ── Plot ──
+  if (getChecked('plot') && (n.plot||[]).length) {
+    p += `\n${'─'.repeat(36)}\n## 剧情大纲\n\n`;
+    n.plot.forEach((pt,i) => { p += `${i+1}. **${pt.act?pt.act+'·':''}${pt.title}**${pt.done?' ✓':''}\n${pt.desc?'   '+pt.desc+'\n':''}`; });
+  }
+
+  // ── Journal (recent 5) ──
+  if (getChecked('journal') && (n.journal||[]).length) {
+    const recent = [...n.journal].sort((a,b)=>b.chapter-a.chapter).slice(0,5).reverse();
+    if (recent.length) {
+      p += `\n${'─'.repeat(36)}\n## 最近章节摘要（写作上下文）\n\n`;
+      recent.forEach(j => { p += `【${j.title||'第'+j.chapter+'章'}】${j.summary}\n`; });
+    }
+  }
+
+  // ── Styles ──
+  const styles = [...(getChecked('style')?(n.styles||[]):[]), ...(getChecked('gstyle')?DB.globalStyles:[])];
+  if (styles.length) {
+    p += `\n${'─'.repeat(36)}\n## 文风要求\n\n`;
+    styles.forEach(s => {
+      if (s.condensed) {
+        p += `**【${s.name}·写作指令】**\n${s.condensed}\n\n参考原文：\n${s.content}\n\n`;
+      } else {
+        p += `**【${s.name}】**\n请模仿此文段的写作风格：\n${s.content}\n\n`;
+        if (s.analyzed) p += `风格分析：${s.analyzed.slice(0,150)}…\n\n`;
+      }
+    });
+  }
+
+  if (getChecked('rules') && n.rules) p += `\n${'─'.repeat(36)}\n## 写作规则（必须严格遵守）\n\n${n.rules}\n`;
+  p += `\n${'─'.repeat(36)}\n## 当前写作任务\n\n${task||'请基于以上设定开始创作。保持人物性格与当前章节弧线一致，文风统一，细节符合世界观。'}`;
+  document.getElementById('prompt-out').textContent = p;
+
+  // Token bar
+  const tokens = Math.round(p.length / 1.8);
+  const pct = Math.min(100, Math.round(tokens / 80));
+  const tb = document.getElementById('token-bar');
+  if (tb) {
+    tb.style.display = 'flex';
+    const fill = document.getElementById('tbar-fill');
+    if (fill) { fill.style.width=pct+'%'; fill.style.background=pct<50?'var(--green)':pct<80?'var(--gold)':'var(--red)'; }
+    const tc = document.getElementById('token-count'); if (tc) tc.textContent='~'+tokens;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOREBOOK
+// ═══════════════════════════════════════════════════════
+function generateLorebook() {
+  const novel = DB.novels.find(x => x.id === curNovelId);
+  if (!novel) { document.getElementById('lb-out').textContent = '⚠️ 请先选择一部小说'; return; }
+  const entries = {}; let uid = 0;
+  const mkEntry = (keys, comment, content, constant, order, group) => ({
+    uid, key: constant?[]:keys, keysecondary:[], comment, content, constant,
+    selective:false, selectiveLogic:0, addMemo:true, order, position:0,
+    disable:false, excludeRecursion:false, preventRecursion:false, delayUntilRecursion:false,
+    probability:100, useProbability:true, depth:4, group, groupOverride:false, groupWeight:100,
+    scanDepth:null, caseSensitive:null, matchWholeWords:null, useGroupScoring:false,
+    automationId:'', role:null, vectorized:false, extensions:{}
+  });
+  if (getLbChecked('chars')) {
+    (novel.characters||[]).forEach(c => {
+      let content = `【${c.name}】${c.role?` ${c.role}`:''}${c.age?`，${c.age}岁`:''}\n`;
+      if (c.appearance) content += `外貌：${c.appearance}\n`;
+      if (c.personality) content += `性格：${c.personality}\n`;
+      if (c.background) content += `背景：${c.background}\n`;
+      if (c.relations) content += `关系：${c.relations}\n`;
+      if ((c.traits||[]).length) content += `特征：${c.traits.join('、')}`;
+      entries[uid] = mkEntry([c.name,...(c.role&&!['男主','女主','配角'].includes(c.role)?[c.role]:[])], `人物：${c.name}`, content.trim(), false, 100, `${novel.title}_人物`); uid++;
+    });
+  }
+  if (getLbChecked('world') && novel.world) {
+    const isC = getLbConst('world');
+    entries[uid] = mkEntry([novel.title,'世界观','背景','设定'], `世界观：${novel.title}`, `【世界观】\n${novel.world}`, isC, 50, `${novel.title}_设定`); uid++;
+  }
+  if (getLbChecked('plot') && (novel.plot||[]).length) {
+    let c = `【剧情大纲：${novel.title}】\n`;
+    novel.plot.forEach((p,i) => { c += `${i+1}. ${p.act?p.act+'·':''}${p.title}${p.desc?'：'+p.desc:''}\n`; });
+    entries[uid] = mkEntry(['剧情','大纲','故事线'], `剧情大纲：${novel.title}`, c.trim(), false, 80, `${novel.title}_设定`); uid++;
+  }
+  if (getLbChecked('style')) {
+    (novel.styles||[]).forEach(s => {
+      entries[uid] = mkEntry(['文风','写作风格',s.name], `文风：${s.name}`, `【文风参考：${s.name}】\n${s.content}${s.analyzed?'\n\n风格特征：'+s.analyzed:''}`, false, 150, `${novel.title}_文风`); uid++;
+    });
+  }
+  if (getLbChecked('rules') && novel.rules) {
+    const isC = getLbConst('rules');
+    entries[uid] = mkEntry(['写作规则','规范'], `写作规则：${novel.title}`, `【写作规则（必须遵守）】\n${novel.rules}`, isC, 10, `${novel.title}_规则`); uid++;
+  }
+  lorebookCache = { name: novel.title, description: novel.synopsis||'', scan_depth:100, token_budget:2048, recursive_scanning:false, extensions:{}, entries };
+  document.getElementById('lb-count').textContent = uid;
+  document.getElementById('lb-out').textContent = JSON.stringify(lorebookCache, null, 2);
+}
+
+function downloadLorebook() {
+  if (!lorebookCache) return toast('请先生成世界书');
+  const novel = DB.novels.find(x => x.id === curNovelId);
+  const blob = new Blob([JSON.stringify(lorebookCache, null, 2)], { type:'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `${novel?novel.title:'lorebook'}_世界书.json`; a.click();
+  toast('⬇ 已下载');
+}
+
+// ═══════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════
+function copyText(id, btnId) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    toast('✅ 已复制');
+    if (btnId) {
+      const btn = document.getElementById(btnId);
+      if (btn) { btn.textContent = '✅ 已复制'; btn.classList.add('ok'); setTimeout(()=>{btn.textContent='📋 复制';btn.classList.remove('ok')}, 2000); }
+    }
+  });
+}
+
+function exportDB() {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], { type:'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `墨库备份_${new Date().toLocaleDateString('zh-CN')}.json`; a.click();
+  toast('已导出备份');
+}
+
+function importDB(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try { DB = JSON.parse(ev.target.result); persist(); curNovelId=null; renderSidebar();
+      document.getElementById('main').innerHTML=`<div class="empty" style="height:100%"><div class="ei">✅</div><div>导入成功！共 ${DB.novels.length} 部小说</div></div>`;
+      toast('导入成功'); } catch { toast('❌ 文件格式错误'); }
+  };
+  reader.readAsText(file); e.target.value = '';
+}
+
+let toastT;
+function toast(msg) {
+  const el = document.getElementById('toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(()=>el.classList.remove('show'), 2600);
+}
+
+// inject-opt toggle (event delegation)
+document.addEventListener('click', e => {
+  const opt = e.target.closest('.iopt');
+  if (!opt) return;
+  opt.classList.toggle('on');
+  const cb = opt.querySelector('input'); if (cb) cb.checked = opt.classList.contains('on');
+});
+
+// ═══════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════
+renderSidebar();
+if (DB.novels.length > 0) selectNovel(DB.novels[0].id);
+</script>
+</body>
+</html>
